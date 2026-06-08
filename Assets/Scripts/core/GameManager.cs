@@ -51,6 +51,7 @@ public class GameManager : MonoBehaviour
     public const float SLOW_TILE_SPEED_MULTIPLIER = 0.5f;
     public const int SLIDE_TILE_CELLS = 3;
     public const float SLIDE_TILE_DURATION = 1f;
+    public const float SLIDE_CELL_INTERVAL = SLIDE_TILE_DURATION / SLIDE_TILE_CELLS;
 
     public const int MAP_SAFE_ROWS = 5;
     public const float SLOW_TILE_SPAWN_CHANCE = 0.025f;

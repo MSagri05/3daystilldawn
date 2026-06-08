@@ -7,7 +7,7 @@ public class Player : BaseEntity
     private float lastMoveTime = -999f;
     private float slowEffectEndTime = -1f;
     private int slideCellsRemaining = 0;
-    private float slideEndTime = -1f;
+    private float slideNextMoveTime = -1f;
 
     protected override float getSizeInCells()
     {
@@ -19,10 +19,10 @@ public class Player : BaseEntity
         slowEffectEndTime = Time.time + duration;
     }
 
-    public void applySlideEffect(int cells, float duration)
+    public void applySlideEffect(int cells)
     {
         slideCellsRemaining = cells;
-        slideEndTime = Time.time + duration;
+        slideNextMoveTime = Time.time;
     }
 
     private float getEffectiveCooldown()
@@ -38,14 +38,14 @@ public class Player : BaseEntity
             return;
         }
 
-        bool inSlide = slideCellsRemaining > 0 || Time.time < slideEndTime;
-        if (inSlide) {
-            if (slideCellsRemaining > 0 && Time.time - lastMoveTime >= GameManager.PLAYER_MOVE_COOLDOWN) {
-                if (move(Vector2Int.down))
+        if (slideCellsRemaining > 0) {
+            if (Time.time >= slideNextMoveTime) {
+                if (move(Vector2Int.down)) {
                     slideCellsRemaining--;
-                else
+                    slideNextMoveTime += GameManager.SLIDE_CELL_INTERVAL;
+                } else {
                     slideCellsRemaining = 0;
-                lastMoveTime = Time.time;
+                }
             }
             return;
         }
