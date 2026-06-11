@@ -17,6 +17,8 @@ public class TitleScreen : MonoBehaviour
     {
         if (GameManager.Instance == null) return;
 
+        if (GameManager.Instance.state == GameManager.GameState.Paused) return;
+
         if (GameManager.Instance.isPlaying()) {
             var hudStyle = new GUIStyle(GUI.skin.label) {
                 alignment = TextAnchor.UpperLeft,
