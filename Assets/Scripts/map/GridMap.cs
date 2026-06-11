@@ -110,6 +110,7 @@ public class GridMap : BaseMap
         renderer.sortingOrder = -2;
         tile.bindRenderer(renderer);
         applyTileScale(obj.transform, renderer.sprite);
+        obj.transform.rotation = Quaternion.Euler(0f, 0f, Random.Range(0, 4) * 90f);
     }
 
     private void applyTileScale(Transform target, Sprite sprite)

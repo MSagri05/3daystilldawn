@@ -3,6 +3,7 @@ using UnityEngine;
 public class Antlion : BaseEntity
 {
     public const float SIZE_IN_CELLS = 6f;
+    public const float HIT_SIZE_IN_CELLS = 3f;
 
     private Player player;
 
@@ -11,11 +12,10 @@ public class Antlion : BaseEntity
         spritePath = GameManager.ANTLION_SPRITE;
         moveSpeed = GameManager.ANTLION_SPEED;
         base.Start();
+        GetComponent<SpriteRenderer>().sortingOrder = 3;
 
         player = FindAnyObjectByType<Player>();
 
-        var renderer = GetComponent<SpriteRenderer>();
-        renderer.sortingOrder = -1;
     }
 
     protected override float getSizeInCells()
@@ -47,16 +47,26 @@ public class Antlion : BaseEntity
         }
 
         Vector3 nextPos = new Vector3(nextX, nextY, 0f);
-        move(nextPos - transform.position);
+        Vector3 delta = nextPos - transform.position;
+        move(delta);
+        updateFacing(delta);
 
         if (isTouchingPlayer(player, nextPos)) {
             GameManager.Instance.gameOver();
         }
     }
 
+    private void updateFacing(Vector3 delta)
+    {
+        if (delta.sqrMagnitude < 0.0001f) return;
+
+        float angle = Mathf.Atan2(delta.x, delta.y) * Mathf.Rad2Deg;
+        transform.rotation = Quaternion.Euler(0f, 0f, -angle);
+    }
+
     private bool isTouchingPlayer(Player player, Vector3 antlionPos)
     {
-        float halfSize = getSize() * 0.5f;
+        float halfSize = HIT_SIZE_IN_CELLS * GameManager.CELL_SIZE * 0.5f;
         float playerHalfSize = player.getSize() * 0.5f;
         Vector3 playerPos = player.transform.position;
 

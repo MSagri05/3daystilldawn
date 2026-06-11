@@ -30,10 +30,12 @@ public class GameManager : MonoBehaviour
     public static readonly bool CAMERA_SHOW_FULL_MAP = false;
 
     public const float GRID_LINE_WIDTH = 0.04f;
-    public static readonly Color GRID_LINE_COLOR = new Color(0.4f, 0.4f, 0.4f, 1f);
+    public static readonly Color GRID_LINE_COLOR = new Color(135f/255f, 103f/255f, 66f/255f, 1f);
 
     public const string BACKGROUND_SPRITE = "Sprites/Backgrounds/Stage";
+    public const string BACKGROUND_TOP_SPRITE = "Sprites/Backgrounds/background map - top";
     public const int BACKGROUND_SORTING_ORDER = -20;
+    public const int BACKGROUND_TOP_SORTING_ORDER = -19;
     public const float BACKGROUND_Z = 0.5f;
 
     public const string PLAYER_SPRITE = "Sprites/Entities/Player";
@@ -42,21 +44,26 @@ public class GameManager : MonoBehaviour
 
     public static float ANTLION_SPEED = 1.5f;
     public static float ANTLION_CATCH_UP_SPEED = 2.5f;
-    public const float ANTLION_X_ALIGN_TIME = 0.15f;
-    public const float ANTLION_START_Y_OFFSET = 14f;
+    public const float ANTLION_X_ALIGN_TIME = 1f;
+    public const float ANTLION_START_Y_OFFSET = 7f;
     public const float ANTLION_MAX_Y_DISTANCE = 14f;
 
-    public const string WHITE_TILE_SPRITE = "Sprites/Tiles/White";
-    public const string WALL_TILE_SPRITE = "Sprites/Tiles/Blue";
-    public const string SLOW_TILE_SPRITE = "Sprites/Tiles/Slow";
-    public const string SLIDE_TILE_SPRITE = "Sprites/Tiles/Slide";
+    public const string WHITE_TILE_SPRITE = "Sprites/Tiles/tile texture - normal tile";
+    public const string WALL_TILE_SPRITE = "Sprites/Tiles/tile texture - wall";
+    public const string SLOW_TILE_SPRITE = "Sprites/Tiles/tile texture - slow tile ";
+    public const string SLOW_TILE_SPRITE_ALT = "Sprites/Tiles/tile texture - slow tile version2";
+    public const string SLIDE_TILE_SPRITE = "Sprites/Tiles/tile texture - falling tile";
 
-    public const string HAZARD_SPRITE = "Sprites/Entities/Hazard";
+    public const string HAZARD_SPRITE = "Sprites/Entities/rock";
     public const float HAZARD_MOVE_INTERVAL = 0.5f;
     public const float HAZARD_STUN_DURATION = 1f;
     public static int HAZARD_COUNT = 20;
 
-    public const string COLLECTIBLE_SPRITE = "Sprites/Entities/Collectible";
+    public static readonly string[] COLLECTIBLE_SPRITES = {
+        "Sprites/Entities/coin - 1",
+        "Sprites/Entities/coin - 2",
+        "Sprites/Entities/coin - 3"
+    };
     public static int COLLECTIBLE_COUNT = 15;
     public const int COLLECTIBLE_SCORE_VALUE = 100;
 

@@ -1,6 +1,8 @@
 public class SlowTrapTile : TrapTile
 {
-    public SlowTrapTile() : base("slow_trap", GameManager.SLOW_TILE_SPRITE)
+    private static readonly System.Random rng = new System.Random();
+
+    public SlowTrapTile() : base("slow_trap", rng.NextDouble() < 0.5 ? GameManager.SLOW_TILE_SPRITE : GameManager.SLOW_TILE_SPRITE_ALT)
     {
     }
 

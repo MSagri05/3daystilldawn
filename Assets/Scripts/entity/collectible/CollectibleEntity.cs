@@ -12,10 +12,10 @@ public class CollectibleEntity : BaseEntity
 
     protected override void Start()
     {
-        spritePath = GameManager.COLLECTIBLE_SPRITE;
+        spritePath = GameManager.COLLECTIBLE_SPRITES[Random.Range(0, GameManager.COLLECTIBLE_SPRITES.Length)];
         base.Start();
-
-        GetComponent<SpriteRenderer>().sortingOrder = 1;
+        transform.rotation = Quaternion.Euler(0f, 0f, Random.Range(0, 4) * 90f);
+        GetComponent<SpriteRenderer>().sortingOrder = 0;
     }
 
     public override void tick()

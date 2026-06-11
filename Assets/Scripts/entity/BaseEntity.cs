@@ -24,6 +24,7 @@ public abstract class BaseEntity : MonoBehaviour, IEntity, ITickable, IMovable, 
         setSprite(spritePath);
         applyEntityScale();
         setYaw(0);
+        GetComponent<SpriteRenderer>().sortingOrder = 1;
         map.callStepTrigger(gridPos, this);
     }
 

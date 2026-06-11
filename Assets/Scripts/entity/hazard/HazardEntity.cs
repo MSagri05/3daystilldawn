@@ -6,10 +6,13 @@ public class HazardEntity : BaseEntity
         Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right
     };
 
+    private const float SPIN_SPEED = 180f;
+    public const float MOVE_SPEED = 2f;
+
     private Player player;
-    private float nextMoveTime;
     private Vector2Int spawnPos = new Vector2Int(-1, -1);
-    private Vector2Int lastDir = Vector2Int.down;
+    private Vector2Int currentDir = Vector2Int.down;
+    private float spinDirection = 0f;
 
     public void setSpawnPosition(Vector2Int pos)
     {
@@ -21,72 +24,81 @@ public class HazardEntity : BaseEntity
         spritePath = GameManager.HAZARD_SPRITE;
         base.Start();
 
+        GetComponent<SpriteRenderer>().sortingOrder = 2;
         player = FindAnyObjectByType<Player>();
-        nextMoveTime = Time.time + Random.Range(0f, GameManager.HAZARD_MOVE_INTERVAL);
+        currentDir = DIRECTIONS[Random.Range(0, DIRECTIONS.Length)];
+        spinDirection = Random.value < 0.5f ? -1f : 1f;
+        updateFacing(currentDir);
 
-        GetComponent<SpriteRenderer>().sortingOrder = 0;
+        targetWorldPos = map.cellToWorld(gridPos);
     }
 
-    public override void tick()
+    protected override void Update()
+    {
+        if (GameManager.Instance == null || !GameManager.Instance.isPlaying()) return;
+
+        transform.Rotate(0f, 0f, spinDirection * SPIN_SPEED * Time.deltaTime);
+
+        checkPlayerContact();
+        moveConstant();
+    }
+
+    private void moveConstant()
+    {
+        transform.position = Vector3.MoveTowards(transform.position, targetWorldPos, MOVE_SPEED * Time.deltaTime);
+
+        if (Vector3.Distance(transform.position, targetWorldPos) < 0.001f) {
+            transform.position = targetWorldPos;
+
+            Vector2Int next = gridPos + currentDir;
+            if (map.canMoveTo(next)) {
+                gridPos = next;
+                targetWorldPos = map.cellToWorld(gridPos);
+            } else {
+                pickNewDirection();
+            }
+        }
+    }
+
+    private void pickNewDirection()
+    {
+        Vector2Int[] others = System.Array.FindAll(DIRECTIONS, d => d != currentDir);
+        shuffle(others);
+        foreach (var dir in others) {
+            Vector2Int next = gridPos + dir;
+            if (map.canMoveTo(next)) {
+                currentDir = dir;
+                gridPos = next;
+                targetWorldPos = map.cellToWorld(gridPos);
+                updateFacing(dir);
+                return;
+            }
+        }
+    }
+
+    private void shuffle(Vector2Int[] arr)
+    {
+        for (int i = arr.Length - 1; i > 0; i--) {
+            int j = Random.Range(0, i + 1);
+            (arr[i], arr[j]) = (arr[j], arr[i]);
+        }
+    }
+
+    private void updateFacing(Vector2Int dir)
+    {
+        if (dir == Vector2Int.right)     spinDirection = -1f;
+        else if (dir == Vector2Int.left) spinDirection = 1f;
+    }
+
+    public override void tick() { }
+
+    private void checkPlayerContact()
     {
         if (player == null) {
             player = FindAnyObjectByType<Player>();
             if (player == null) return;
         }
 
-        checkPlayerContact();
-
-        if (Time.time >= nextMoveTime) {
-            moveRandom();
-            nextMoveTime += GameManager.HAZARD_MOVE_INTERVAL;
-        }
-    }
-
-    private void moveRandom()
-    {
-        // Shuffle directions, prefer continuing in the same direction
-        Vector2Int[] dirs = (Vector2Int[])DIRECTIONS.Clone();
-        for (int i = dirs.Length - 1; i > 0; i--) {
-            int j = Random.Range(0, i + 1);
-            (dirs[i], dirs[j]) = (dirs[j], dirs[i]);
-        }
-
-        // Try last direction first ~60% of the time for smoother wandering
-        if (Random.value < 0.6f) {
-            if (tryMoveThrough(lastDir)) return;
-        }
-
-        foreach (var dir in dirs) {
-            if (tryMoveThrough(dir)) return;
-        }
-    }
-
-    private bool tryMoveThrough(Vector2Int dir)
-    {
-        Vector2Int next = gridPos + dir;
-        if (!map.canMoveTo(next)) return false;
-
-        gridPos = next;
-        moveStartWorldPos = transform.position;
-        targetWorldPos = map.cellToWorld(gridPos);
-        moveElapsedTime = 0f;
-        moveDuration = GameManager.MOVE_INTERPOLATION_TIME;
-        isMoving = true;
-        lastDir = dir;
-        updateFacing(dir);
-        return true;
-    }
-
-    private void updateFacing(Vector2Int dir)
-    {
-        if (dir == Vector2Int.up)         setYaw(0);
-        else if (dir == Vector2Int.right) setYaw(90);
-        else if (dir == Vector2Int.down)  setYaw(180);
-        else if (dir == Vector2Int.left)  setYaw(270);
-    }
-
-    private void checkPlayerContact()
-    {
         if (gridPos == player.getGridPos()) {
             player.applyStunEffect(GameManager.HAZARD_STUN_DURATION);
         }
