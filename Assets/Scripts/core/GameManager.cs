@@ -69,7 +69,7 @@ public class GameManager : MonoBehaviour
 
     public const float SLOW_TILE_DURATION = 3f;
     public const float SLOW_TILE_SPEED_MULTIPLIER = 0.25f;
-    public const int SLIDE_TILE_CELLS = 3;
+    public const int SLIDE_TILE_CELLS = 2;
     public const float SLIDE_TILE_DURATION = 1f;
     public const float SLIDE_CELL_INTERVAL = SLIDE_TILE_DURATION / SLIDE_TILE_CELLS;
 
@@ -78,15 +78,22 @@ public class GameManager : MonoBehaviour
     public static float SLIDE_TILE_SPAWN_CHANCE = 0.025f;
     public static float WALL_TILE_SPAWN_CHANCE = 0.10f;
 
+    public const float TIME_MULTIPLIER_3X = 30f;
+    public const float TIME_MULTIPLIER_2X = 45f;
+    public const float TIME_MULTIPLIER_1_5X = 60f;
+
     public static GameManager Instance { get; private set; }
 
     public BaseMap currentMap;
     public GameState state = GameState.Title;
     public int score = 0;
+    public float gameStartTime = 0f;
+    public float completionTime = 0f;
+    public float scoreMultiplier = 1f;
 
     public void addScore(int amount)
     {
-        score += amount;
+        score = Mathf.Max(0, score + amount);
     }
 
     void Awake()
@@ -125,6 +132,8 @@ public class GameManager : MonoBehaviour
     public void startGame()
     {
         score = 0;
+        scoreMultiplier = 1f;
+        gameStartTime = Time.time;
         applyDifficulty();
         state = GameState.Playing;
     }
@@ -164,7 +173,18 @@ public class GameManager : MonoBehaviour
 
     public void winGame()
     {
+        completionTime = Time.time - gameStartTime;
+        scoreMultiplier = getTimeMultiplier(completionTime);
+        score = Mathf.RoundToInt(score * scoreMultiplier);
         state = GameState.Won;
+    }
+
+    private float getTimeMultiplier(float time)
+    {
+        if (time <= TIME_MULTIPLIER_3X)   return 3f;
+        if (time <= TIME_MULTIPLIER_2X)   return 2f;
+        if (time <= TIME_MULTIPLIER_1_5X) return 1.5f;
+        return 1f;
     }
 
     public void gameOver()

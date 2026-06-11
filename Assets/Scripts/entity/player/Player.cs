@@ -7,7 +7,6 @@ public class Player : BaseEntity
     private float lastMoveTime = -999f;
     private float slowEffectEndTime = -1f;
     private float stunEffectEndTime = -1f;
-    private int slidePreservedYaw = 0;
     private int slideCellsRemaining = 0;
     private float slideNextMoveTime = -1f;
 
@@ -43,7 +42,6 @@ public class Player : BaseEntity
     {
         slideCellsRemaining = cells;
         slideNextMoveTime = Time.time;
-        slidePreservedYaw = getYaw();
         FloatingText.Spawn("Be Careful!", transform.position, new Color(1f, 0.4f, 0f));
     }
 
@@ -63,7 +61,6 @@ public class Player : BaseEntity
         if (slideCellsRemaining > 0) {
             if (Time.time >= slideNextMoveTime) {
                 if (move(Vector2Int.down)) {
-                    setYaw(slidePreservedYaw);
                     slideCellsRemaining--;
                     slideNextMoveTime += GameManager.SLIDE_CELL_INTERVAL;
                 } else {

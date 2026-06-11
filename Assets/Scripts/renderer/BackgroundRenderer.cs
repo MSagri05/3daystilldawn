@@ -12,7 +12,7 @@ public class BackgroundRenderer : MonoBehaviour
             return;
         }
 
-        float width = GameManager.MAP_WIDTH * GameManager.CELL_SIZE * 2f;
+        float width = GameManager.MAP_WIDTH * GameManager.CELL_SIZE * 1.9f;
         float height = GameManager.MAP_HEIGHT * GameManager.CELL_SIZE * 1.5f;
 
         var renderer = GetComponent<SpriteRenderer>();

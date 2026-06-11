@@ -24,7 +24,7 @@ public class TitleScreen : MonoBehaviour
                 fontStyle = FontStyle.Bold,
                 normal = { textColor = Color.black }
             };
-            GUI.Label(new Rect(12, 12, 300, 40), $"Score: {GameManager.Instance.score}", hudStyle);
+            GUI.Label(new Rect(12, 12, 300, 40), $"Score: {GameManager.Instance.score}", noHover(hudStyle));
             return;
         }
 
@@ -36,12 +36,13 @@ public class TitleScreen : MonoBehaviour
         float centerY = Screen.height * 0.5f;
         var titleStyle = new GUIStyle(GUI.skin.label) {
             alignment = TextAnchor.MiddleCenter,
-            fontSize = 42
+            fontSize = 42,
+            normal = { textColor = Color.black }
         };
 
         string title = getTitle();
-        if (titleBg == null || GameManager.Instance.state != GameManager.GameState.Title) {
-            GUI.Label(new Rect(0, centerY - 140, Screen.width, 64), title, titleStyle);
+        if (GameManager.Instance.state != GameManager.GameState.SelectingDifficulty) {
+            GUI.Label(new Rect(0, centerY - 140, Screen.width, 64), title, noHover(titleStyle));
         }
 
         if (GameManager.Instance.state == GameManager.GameState.Title) {
@@ -53,9 +54,9 @@ public class TitleScreen : MonoBehaviour
                 alignment = TextAnchor.MiddleCenter,
                 fontSize = 32,
                 fontStyle = FontStyle.Bold,
-                normal = { textColor = Color.white }
+                normal = { textColor = Color.black }
             };
-            GUI.Label(new Rect(0, centerY - 120, Screen.width, 50), "Select Difficulty", diffLabelStyle);
+            GUI.Label(new Rect(0, centerY - 120, Screen.width, 50), "Select Difficulty", noHover(diffLabelStyle));
 
             float diffBtnW = 90f;
             float totalW = diffBtnW * 3 + GAP * 2;
@@ -70,22 +71,42 @@ public class TitleScreen : MonoBehaviour
                 GameManager.Instance.startGame();
             }
         } else {
-            GUI.Label(new Rect(0, centerY - 140, Screen.width, 64), title, titleStyle);
             var scoreStyle = new GUIStyle(GUI.skin.label) {
                 alignment = TextAnchor.MiddleCenter,
                 fontSize = 28,
-                normal = { textColor = Color.yellow }
+                normal = { textColor = Color.black }
             };
-            GUI.Label(new Rect(0, centerY - 72, Screen.width, 48), $"Score: {GameManager.Instance.score}", scoreStyle);
+            GUI.Label(new Rect(0, centerY - 72, Screen.width, 48), $"Score: {GameManager.Instance.score}", noHover(scoreStyle));
+
+            if (GameManager.Instance.state == GameManager.GameState.Won) {
+                var timeStyle = new GUIStyle(GUI.skin.label) {
+                    alignment = TextAnchor.MiddleCenter,
+                    fontSize = 22,
+                    normal = { textColor = Color.black }
+                };
+                int mins = Mathf.FloorToInt(GameManager.Instance.completionTime / 60f);
+                int secs = Mathf.FloorToInt(GameManager.Instance.completionTime % 60f);
+                GUI.Label(new Rect(0, centerY - 28, Screen.width, 36), $"Time: {mins:00}:{secs:00}  |  Multiplier: {GameManager.Instance.scoreMultiplier}x", noHover(timeStyle));
+            }
         }
 
         bool onDiffScreen = GameManager.Instance.state == GameManager.GameState.SelectingDifficulty;
         float exitY = onDiffScreen
             ? centerY + BUTTON_HEIGHT * 1.5f + GAP * 2
             : centerY + BUTTON_HEIGHT * 0.5f + GAP;
-        if (GUI.Button(new Rect(centerX - BUTTON_WIDTH * 0.5f, exitY, BUTTON_WIDTH, BUTTON_HEIGHT), "Exit")) {
-            GameManager.Instance.exitGame();
+        string exitLabel = onDiffScreen ? "Back" : "Exit";
+        if (GUI.Button(new Rect(centerX - BUTTON_WIDTH * 0.5f, exitY, BUTTON_WIDTH, BUTTON_HEIGHT), exitLabel)) {
+            if (onDiffScreen)
+                GameManager.Instance.state = GameManager.GameState.Title;
+            else
+                GameManager.Instance.exitGame();
         }
+    }
+
+    private GUIStyle noHover(GUIStyle style)
+    {
+        style.hover.textColor = style.normal.textColor;
+        return style;
     }
 
     private void drawDiffButton(string label, GameManager.Difficulty diff, Rect rect)

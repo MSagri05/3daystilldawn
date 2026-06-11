@@ -52,6 +52,7 @@ public class Antlion : BaseEntity
         updateFacing(delta);
 
         if (isTouchingPlayer(player, nextPos)) {
+            GameManager.Instance.addScore(-500);
             GameManager.Instance.gameOver();
         }
     }
