@@ -23,7 +23,7 @@ public class GameManager : MonoBehaviour
     public const float MOVE_INTERPOLATION_TIME = GAME_TICK_TIME;
 
     public const float ENTITY_MOVE_SPEED = 12f;
-    public const float PLAYER_MOVE_COOLDOWN = 0.1f;
+    public const float PLAYER_MOVE_COOLDOWN = 0.175f;
 
     public const float CAMERA_PADDING = 0.5f;
     public const float CAMERA_FOLLOW_SPEED = 8f;
@@ -59,6 +59,7 @@ public class GameManager : MonoBehaviour
     public const float HAZARD_MOVE_INTERVAL = 0.5f;
     public const float HAZARD_STUN_DURATION = 1f;
     public static int HAZARD_COUNT = 20;
+    public static float HAZARD_MOVE_SPEED = 2f;
 
     public static readonly string[] COLLECTIBLE_SPRITES = {
         "Sprites/Entities/coin - 1",
@@ -106,11 +107,20 @@ public class GameManager : MonoBehaviour
 
         Instance = this;
         DontDestroyOnLoad(gameObject);
+        UnityEngine.SceneManagement.SceneManager.sceneLoaded += onSceneLoaded;
     }
 
-    void Start()
+    void OnDestroy()
     {
-        BaseMap map = currentMap != null ? currentMap : FindAnyObjectByType<BaseMap>();
+        if (Instance == this) {
+            UnityEngine.SceneManagement.SceneManager.sceneLoaded -= onSceneLoaded;
+        }
+    }
+
+    private void onSceneLoaded(UnityEngine.SceneManagement.Scene scene, UnityEngine.SceneManagement.LoadSceneMode mode)
+    {
+        currentMap = null;
+        BaseMap map = FindAnyObjectByType<BaseMap>();
         if (map != null) {
             loadMap(map);
         }
@@ -145,6 +155,7 @@ public class GameManager : MonoBehaviour
             case Difficulty.Easy:
                 ANTLION_SPEED = 0.8f;
                 ANTLION_CATCH_UP_SPEED = 1.5f;
+                HAZARD_MOVE_SPEED = 1.5f;
                 HAZARD_COUNT = 8;
                 COLLECTIBLE_COUNT = 10;
                 SLOW_TILE_SPAWN_CHANCE = 0.01f;
@@ -154,6 +165,7 @@ public class GameManager : MonoBehaviour
             case Difficulty.Medium:
                 ANTLION_SPEED = 1.5f;
                 ANTLION_CATCH_UP_SPEED = 2.5f;
+                HAZARD_MOVE_SPEED = 2f;
                 HAZARD_COUNT = 20;
                 COLLECTIBLE_COUNT = 15;
                 SLOW_TILE_SPAWN_CHANCE = 0.025f;
@@ -161,13 +173,14 @@ public class GameManager : MonoBehaviour
                 WALL_TILE_SPAWN_CHANCE = 0.10f;
                 break;
             case Difficulty.Hard:
-                ANTLION_SPEED = 2.5f;
-                ANTLION_CATCH_UP_SPEED = 4.0f;
+                ANTLION_SPEED = 2.8f;
+                ANTLION_CATCH_UP_SPEED = 4.4f;
+                HAZARD_MOVE_SPEED = 2.6f;
                 HAZARD_COUNT = 35;
                 COLLECTIBLE_COUNT = 20;
                 SLOW_TILE_SPAWN_CHANCE = 0.05f;
                 SLIDE_TILE_SPAWN_CHANCE = 0.05f;
-                WALL_TILE_SPAWN_CHANCE = 0.15f;
+                WALL_TILE_SPAWN_CHANCE = 0.20f;
                 break;
         }
     }

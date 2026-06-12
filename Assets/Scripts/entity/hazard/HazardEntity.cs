@@ -7,7 +7,6 @@ public class HazardEntity : BaseEntity
     };
 
     private const float SPIN_SPEED = 180f;
-    public const float MOVE_SPEED = 2f;
 
     private Player player;
     private Vector2Int spawnPos = new Vector2Int(-1, -1);
@@ -45,7 +44,7 @@ public class HazardEntity : BaseEntity
 
     private void moveConstant()
     {
-        transform.position = Vector3.MoveTowards(transform.position, targetWorldPos, MOVE_SPEED * Time.deltaTime);
+        transform.position = Vector3.MoveTowards(transform.position, targetWorldPos, GameManager.HAZARD_MOVE_SPEED * Time.deltaTime);
 
         if (Vector3.Distance(transform.position, targetWorldPos) < 0.001f) {
             transform.position = targetWorldPos;

@@ -154,14 +154,10 @@ public class TitleScreen : MonoBehaviour
 
         float btnW = w * 0.22f;
         float btnX = (w - btnW) * 0.5f;
-        Rect startR = texRect(btnX, h * 0.64f, btnW, texStartMain);
-        Rect exitR  = texRect(btnX, startR.yMax + h * 0.03f, btnW, texExitMain);
-
-        if (imgButton(startR, texStartMain))
-            GameManager.Instance.selectDifficulty();
+        Rect exitR = texRect(btnX, h * 0.64f, btnW, texExitMain);
 
         if (imgButton(exitR, texExitMain))
-            GameManager.Instance.exitGame();
+            GameManager.Instance.returnToMenu();
     }
 
     private void drawDiffBtn(Rect rect, Texture2D tex, GameManager.Difficulty diff)
@@ -180,8 +176,19 @@ public class TitleScreen : MonoBehaviour
         return new Rect(x, y, width, height);
     }
 
+    private const float HOVER_SCALE = 1.08f;
+
     private bool imgButton(Rect rect, Texture2D tex)
     {
+        if (rect.Contains(Event.current.mousePosition)) {
+            float grownW = rect.width * HOVER_SCALE;
+            float grownH = rect.height * HOVER_SCALE;
+            rect = new Rect(
+                rect.x - (grownW - rect.width) * 0.5f,
+                rect.y - (grownH - rect.height) * 0.5f,
+                grownW, grownH);
+        }
+
         if (tex == null) return GUI.Button(rect, "");
         if (!styleCache.TryGetValue(tex, out var style)) {
             style = new GUIStyle(GUIStyle.none) {
