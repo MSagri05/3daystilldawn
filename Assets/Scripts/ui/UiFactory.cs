@@ -64,6 +64,15 @@ public static class UiFactory
         return btn;
     }
 
+    // Adds a dark outline to a TMP label so white text stays readable on bright backgrounds.
+    // Uses fontMaterial (an instance) so it doesn't affect other text sharing the font.
+    public static void outline(TextMeshProUGUI label, float width = 0.2f)
+    {
+        if (label == null) return;
+        label.fontMaterial.SetColor(ShaderUtilities.ID_OutlineColor, Color.black);
+        label.fontMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, width);
+    }
+
     public static void anchor(RectTransform rt, Vector2 min, Vector2 max, Vector2 pivot)
     {
         rt.anchorMin = min;

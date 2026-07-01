@@ -67,14 +67,20 @@ public class PlayerHUD : MonoBehaviour
 
     void showDeath()
     {
-        if (deathOverlay != null) deathOverlay.SetActive(true);
-
         var player = FindAnyObjectByType<PlayerController>();
         if (player != null)
         {
             player.lockCursor(false);
             player.enabled = false;
         }
+
+        if (GameState.Instance != null) GameState.Instance.setFlag(GameManager.FLAG_DIED);
+
+        // death is a narrative ending — go to the Ending scene if it exists, else show the overlay
+        if (Application.CanStreamedLevelBeLoaded(GameManager.SCENE_ENDING))
+            SceneLoader.load(GameManager.SCENE_ENDING);
+        else if (deathOverlay != null)
+            deathOverlay.SetActive(true);
     }
 
     // ---------------------------------------------------------------- build
@@ -113,8 +119,37 @@ public class PlayerHUD : MonoBehaviour
         anchor(objectiveLabel.rectTransform, new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0.5f, 1));
         objectiveLabel.rectTransform.anchoredPosition = new Vector2(0, -30);
         objectiveLabel.rectTransform.sizeDelta = new Vector2(1200, 44);
+        UiFactory.outline(objectiveLabel);   // stays readable over bright surfaces
 
+        buildCrosshair(root);
         buildDeathOverlay(root);
+    }
+
+    // A small "+" reticle with a dark outline behind a bright core, so it stays visible on
+    // both bright and dark backgrounds.
+    void buildCrosshair(Transform root)
+    {
+        var go = new GameObject("Crosshair", typeof(RectTransform));
+        go.transform.SetParent(root, false);
+        var rt = go.GetComponent<RectTransform>();
+        rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(0.5f, 0.5f);
+        rt.anchoredPosition = Vector2.zero;
+
+        Color outline = new Color(0f, 0f, 0f, 0.65f);
+        Color core = new Color(1f, 1f, 1f, 0.9f);
+        crosshairBar(go.transform, new Vector2(26, 6), outline);
+        crosshairBar(go.transform, new Vector2(6, 26), outline);
+        crosshairBar(go.transform, new Vector2(22, 2), core);
+        crosshairBar(go.transform, new Vector2(2, 22), core);
+    }
+
+    void crosshairBar(Transform parent, Vector2 size, Color color)
+    {
+        var bar = image(parent, "Bar", color);
+        var rt = bar.rectTransform;
+        rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(0.5f, 0.5f);
+        rt.anchoredPosition = Vector2.zero;
+        rt.sizeDelta = size;
     }
 
     void buildDeathOverlay(Transform root)

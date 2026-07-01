@@ -4,11 +4,9 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-// Self-building dialogue window: a speaker name, a line of text, and either a
-// "Continue" button or a set of choice buttons. Callers drive the conversation with
-// show() / showChoice() and can nest calls to chain lines (see FriendNpc).
-// While open it frees the cursor and (because the player controller gates on a locked
-// cursor) the player stops moving.
+// Self-building dialogue window with a speaker line and either a Continue button or choice
+// buttons; callers drive it via show() / showChoice() and nest calls to chain lines.
+// While open the cursor is freed, which also stops player movement.
 public class DialogueUI : MonoBehaviour
 {
     public static DialogueUI Instance { get; private set; }

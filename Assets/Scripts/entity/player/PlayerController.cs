@@ -1,10 +1,8 @@
 using UnityEngine;
 
-// First-person controller with Minecraft Java movement. The velocity is advanced with
-// Minecraft's per-tick math (acceleration, ground/air friction, gravity, the sprint-jump
-// impulse) so speeds match and sprint-jumping/bhopping is faster than plain sprinting —
-// but the character is *moved* every frame by that velocity, so it renders smoothly at any
-// frame rate instead of stepping at 20 Hz. Mouse look is per-frame.
+// First-person controller with Minecraft Java movement: velocity is stepped with Minecraft's
+// per-tick math (friction, gravity, sprint-jump impulse) so bhopping beats plain sprinting,
+// but the controller is moved every frame so it stays smooth at any frame rate.
 [RequireComponent(typeof(CharacterController))]
 public class PlayerController : MonoBehaviour
 {
