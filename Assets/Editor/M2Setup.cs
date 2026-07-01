@@ -3,200 +3,14 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-// Wires the Milestone 2 gameplay systems into the currently open scene so they don't
-// have to be added by hand. Run once on GameScene.
+// Reusable content/scene tools for the game (the one-time bootstrap tools were removed once
+// the scene was set up). Menu: Tools > M2.
 public static class M2Setup
 {
-    // Tools > M2 > Setup Survival (Health + HUD + test Zombie)
-    [MenuItem("Tools/M2/Setup Survival (Health + HUD + test Zombie)")]
-    public static void SetupSurvival()
-    {
-        var player = Object.FindAnyObjectByType<PlayerController>();
-        if (player == null)
-        {
-            Debug.LogError("[M2] No PlayerController in the scene. Open GameScene first.");
-            return;
-        }
+    const float ZOMBIE_HEIGHT = 1.9f;   // zombies stand a touch taller than the 1.8m player
 
-        // give the player hit points
-        var health = player.GetComponent<Health>();
-        if (health == null)
-        {
-            health = Undo.AddComponent<Health>(player.gameObject);
-            Debug.Log("[M2] Added Health to the player.");
-        }
-
-        // make sure the self-building HUD is present
-        if (Object.FindAnyObjectByType<PlayerHUD>() == null)
-        {
-            var hud = new GameObject("PlayerHUD");
-            hud.AddComponent<PlayerHUD>();
-            Undo.RegisterCreatedObjectUndo(hud, "Create PlayerHUD");
-            Debug.Log("[M2] Created PlayerHUD (health bar + objective + death screen build at play time).");
-        }
-
-        // a zombie to test the damage loop against
-        if (Object.FindAnyObjectByType<Zombie>() == null)
-            EntitySpawner.CreateZombie();
-
-        EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
-        Debug.Log("[M2] Survival setup done. Press Play: the zombie will chase and bite; watch the health bar. " +
-                  "Save the scene (Ctrl+S) to keep the Health component and PlayerHUD.");
-    }
-
-    // Tools > M2 > Setup Friend Dialogue (NPC talk + DialogueUI)
-    [MenuItem("Tools/M2/Setup Friend Dialogue (NPC talk + DialogueUI)")]
-    public static void SetupFriendDialogue()
-    {
-        var npc = Object.FindAnyObjectByType<Npc>();
-        if (npc == null)
-        {
-            Debug.LogError("[M2] No Npc in the scene. Create one with Tools > Create NPC first.");
-            return;
-        }
-
-        // make the friend interactable ([E] to talk)
-        if (npc.GetComponent<FriendNpc>() == null)
-        {
-            Undo.AddComponent<FriendNpc>(npc.gameObject);
-            Debug.Log("[M2] Added FriendNpc (dialogue) to '" + npc.name + "'.");
-        }
-
-        // the interactor only raycasts against the Interactable layer
-        int layer = LayerMask.NameToLayer(GameManager.INTERACTABLE_LAYER_NAME);
-        if (layer < 0)
-            Debug.LogError("[M2] No 'Interactable' layer exists — add it under Project Settings > Tags and Layers, then re-run.");
-        else if (npc.gameObject.layer != layer)
-        {
-            npc.gameObject.layer = layer;
-            Debug.Log("[M2] Set the NPC to the Interactable layer so the player can target it.");
-        }
-
-        // the self-building dialogue window
-        if (Object.FindAnyObjectByType<DialogueUI>() == null)
-        {
-            var d = new GameObject("DialogueUI");
-            d.AddComponent<DialogueUI>();
-            Undo.RegisterCreatedObjectUndo(d, "Create DialogueUI");
-            Debug.Log("[M2] Created DialogueUI.");
-        }
-
-        // GameState stores the narrative flags/counters that dialogue writes; without it,
-        // choices wouldn't survive into the ending. Attach it to the GameManager object.
-        if (Object.FindAnyObjectByType<GameState>() == null)
-        {
-            var gm = Object.FindAnyObjectByType<GameManager>();
-            var host = gm != null ? gm.gameObject : new GameObject("GameState");
-            Undo.AddComponent<GameState>(host);
-            Debug.Log("[M2] Added GameState (narrative flags/counters) to '" + host.name + "'.");
-        }
-
-        EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
-        Debug.Log("[M2] Friend dialogue setup done. Press Play, walk up to the NPC and press [E] to talk. " +
-                  "Save the scene (Ctrl+S) to keep it.");
-    }
-
-    // Tools > M2 > Match NPC Height To Player (1.8m)
-    // Scales the NPC model so it stands the same height as the player (Minecraft 1.8m),
-    // so their eye levels line up, and matches its capsule to the player's proportions.
-    [MenuItem("Tools/M2/Match NPC Height To Player (1.8m)")]
-    public static void MatchNpcHeight()
-    {
-        var npc = Object.FindAnyObjectByType<Npc>();
-        if (npc == null)
-        {
-            Debug.LogError("[M2] No Npc in the scene.");
-            return;
-        }
-
-        if (!tryMeasure(npc, out Bounds bounds))
-        {
-            Debug.LogError("[M2] NPC has no Renderer to measure. Aborting.");
-            return;
-        }
-
-        // 1) scale the whole NPC so the visible model is exactly PLAYER_HEIGHT tall
-        float currentHeight = bounds.size.y;
-        if (currentHeight > 0.001f)
-        {
-            Undo.RecordObject(npc.transform, "Match NPC height");
-            npc.transform.localScale *= GameManager.PLAYER_HEIGHT / currentHeight;
-            Debug.Log($"[M2] Scaled NPC from {currentHeight:0.00}m to {GameManager.PLAYER_HEIGHT}m tall.");
-        }
-
-        // 2) drop a leftover CapsuleCollider — the CharacterController is the only collider we want
-        var extra = npc.GetComponent<CapsuleCollider>();
-        if (extra != null)
-        {
-            Undo.DestroyObjectImmediate(extra);
-            Debug.Log("[M2] Removed a redundant CapsuleCollider from the NPC.");
-        }
-
-        // 3) put the model's feet on the floor (works regardless of where the pivot is)
-        snapToFloor(npc);
-
-        // 4) rebuild the CharacterController from the model's real bounds, so the capsule
-        //    wraps the model no matter whether the pivot is at the feet or the centre
-        var cc = npc.GetComponent<CharacterController>();
-        if (cc != null && tryMeasure(npc, out Bounds finalBounds))
-        {
-            Transform t = npc.transform;
-            float sy  = Mathf.Approximately(t.lossyScale.y, 0f) ? 1f : t.lossyScale.y;
-            float sxz = Mathf.Max(Mathf.Abs(t.lossyScale.x), Mathf.Abs(t.lossyScale.z));
-            if (sxz <= 0f) sxz = 1f;
-
-            float worldCenterY = finalBounds.min.y + finalBounds.size.y * 0.5f;
-            Undo.RecordObject(cc, "Match NPC capsule");
-            cc.height = finalBounds.size.y / sy;
-            cc.radius = GameManager.PLAYER_RADIUS / sxz;
-            cc.center = new Vector3(0f, (worldCenterY - t.position.y) / sy, 0f);
-        }
-
-        EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
-        Debug.Log("[M2] NPC height matched and placed on the floor. Save the scene (Ctrl+S) to keep it.");
-    }
-
-    static bool tryMeasure(Npc npc, out Bounds bounds)
-    {
-        var renderers = npc.GetComponentsInChildren<Renderer>();
-        bounds = default;
-        if (renderers.Length == 0) return false;
-
-        bounds = renderers[0].bounds;
-        foreach (var r in renderers) bounds.Encapsulate(r.bounds);
-        return true;
-    }
-
-    // Lifts/drops the NPC so the bottom of its model rests exactly on the floor below it.
-    // All of the NPC's own colliders are disabled during the raycast so it can't hit itself.
-    static void snapToFloor(Npc npc)
-    {
-        if (!tryMeasure(npc, out Bounds bounds)) return;
-
-        // CharacterController is itself a Collider, so this also covers it — disable every
-        // collider so the downward ray can't hit the NPC's own body, then restore them.
-        var colliders = npc.GetComponentsInChildren<Collider>();
-        var wasEnabled = new bool[colliders.Length];
-        for (int i = 0; i < colliders.Length; i++) { wasEnabled[i] = colliders[i].enabled; colliders[i].enabled = false; }
-
-        // start just above the head (avoids hitting a roof) and cast down to the floor
-        Vector3 origin = new Vector3(bounds.center.x, bounds.max.y + 0.3f, bounds.center.z);
-        if (Physics.Raycast(origin, Vector3.down, out RaycastHit hit, 200f))
-        {
-            float lift = hit.point.y - bounds.min.y;   // move feet onto the floor
-            Undo.RecordObject(npc.transform, "Snap NPC to floor");
-            npc.transform.position += Vector3.up * lift;
-        }
-        else
-        {
-            Debug.LogWarning("[M2] Couldn't find a floor under the NPC to snap to — position it manually.");
-        }
-
-        for (int i = 0; i < colliders.Length; i++) colliders[i].enabled = wasEnabled[i];
-    }
-
-    // Tools > M2 > Fix Lighting — the scene had two stacked directional lights blowing
-    // everything out to white. Keep one at a sane intensity and set a survival-mood ambient.
+    // Tools > M2 > Fix Lighting — keep one directional light at a sane intensity with soft
+    // shadows and a moderate ambient, so surfaces aren't blown out to white.
     [MenuItem("Tools/M2/Fix Lighting (dim to survival mood)")]
     public static void FixLighting()
     {
@@ -209,8 +23,8 @@ public static class M2Setup
             if (keptCount == 0)
             {
                 l.enabled = true;
-                l.intensity = 0.85f;       // keeps clear directional shading (map albedo is dark enough not to blow out)
-                l.shadows = LightShadows.Soft;   // the light we keep might have had shadows off
+                l.intensity = 0.85f;
+                l.shadows = LightShadows.Soft;
                 l.shadowStrength = 0.8f;
                 Undo.RecordObject(l.transform, "Fix lighting");
                 l.transform.rotation = Quaternion.Euler(50f, -30f, 0f);   // angled sun so shadows are visible
@@ -223,19 +37,147 @@ public static class M2Setup
             }
         }
 
-        // moderate flat ambient: fills shadows so they aren't pitch black, but keeps some contrast
         RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
         RenderSettings.ambientLight = new Color(0.26f, 0.28f, 0.32f);
         RenderSettings.ambientIntensity = 1f;
 
         EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
-        Debug.Log($"[M2] Lighting balanced: 1 directional @0.85 (shadows on) + moderate ambient, disabled {disabled} extra. " +
-                  "Nudge the Directional Light Intensity (lit side) and Environment Ambient (dark side) to taste. Ctrl+S.");
+        Debug.Log($"[M2] Lighting balanced: 1 directional @0.85 (soft shadows) + ambient, disabled {disabled} extra. " +
+                  "Tweak Directional Intensity (lit side) / Environment Ambient (dark side) to taste. Ctrl+S.");
     }
 
-    // ---------------------------------------------------------------- environmental storytelling
+    // Tools > M2 > Match NPC Height To Player — scale the NPC model to the player's 1.8m,
+    // wrap its capsule to the model bounds, and stand it on the floor.
+    [MenuItem("Tools/M2/Match NPC Height To Player (1.8m)")]
+    public static void MatchNpcHeight()
+    {
+        var npc = Object.FindAnyObjectByType<Npc>();
+        if (npc == null) { Debug.LogError("[M2] No Npc in the scene."); return; }
 
-    // Tools > M2 > Create Readable Note — a findable text fragment that reveals story + objective.
+        if (!tryMeasure(npc.gameObject, out Bounds bounds))
+        {
+            Debug.LogError("[M2] NPC has no Renderer to measure. Aborting.");
+            return;
+        }
+
+        float currentHeight = bounds.size.y;
+        if (currentHeight > 0.001f)
+        {
+            Undo.RecordObject(npc.transform, "Match NPC height");
+            npc.transform.localScale *= GameManager.PLAYER_HEIGHT / currentHeight;
+            Debug.Log($"[M2] Scaled NPC from {currentHeight:0.00}m to {GameManager.PLAYER_HEIGHT}m tall.");
+        }
+
+        var extra = npc.GetComponent<CapsuleCollider>();
+        if (extra != null) { Undo.DestroyObjectImmediate(extra); }   // keep only the CharacterController
+
+        snapToFloor(npc.gameObject);
+        wrapCapsule(npc.gameObject);
+
+        EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
+        Debug.Log("[M2] NPC height matched and placed on the floor. Ctrl+S to keep.");
+    }
+
+    // Tools > M2 > Apply Zombie Model — replaces the placeholder capsule visual on every zombie
+    // with the Zombie_Male model (kept as a child), then sizes it and stands it on the floor.
+    [MenuItem("Tools/M2/Apply Zombie Model")]
+    public static void ApplyZombieModel()
+    {
+        var model = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/Zombie_Male.fbx");
+        if (model == null) { Debug.LogError("[M2] Assets/Models/Zombie_Male.fbx not found."); return; }
+
+        var zombies = Object.FindObjectsByType<Zombie>(FindObjectsSortMode.None);
+        if (zombies.Length == 0) { Debug.LogError("[M2] No Zombie in the scene."); return; }
+
+        int applied = 0;
+        foreach (var z in zombies)
+        {
+            if (z.GetComponentInChildren<SkinnedMeshRenderer>() != null) continue;   // already has a model
+
+            // hide the primitive capsule visual, but keep the CharacterController for collision
+            var mr = z.GetComponent<MeshRenderer>();
+            var mf = z.GetComponent<MeshFilter>();
+            if (mr != null) Undo.DestroyObjectImmediate(mr);
+            if (mf != null) Undo.DestroyObjectImmediate(mf);
+
+            var instance = (GameObject)PrefabUtility.InstantiatePrefab(model, z.transform);
+            instance.transform.localPosition = Vector3.zero;
+            instance.transform.localRotation = Quaternion.identity;
+            Undo.RegisterCreatedObjectUndo(instance, "Apply Zombie Model");
+
+            // size the model, wrap the capsule around it, and drop it onto the floor
+            if (tryMeasure(z.gameObject, out Bounds b) && b.size.y > 0.001f)
+            {
+                Undo.RecordObject(z.transform, "Scale Zombie");
+                z.transform.localScale *= ZOMBIE_HEIGHT / b.size.y;
+            }
+            snapToFloor(z.gameObject);
+            wrapCapsule(z.gameObject);
+            applied++;
+        }
+
+        EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
+        Debug.Log($"[M2] Applied the zombie model to {applied} zombie(s). It stands in a T-pose until an " +
+                  "Animator is added (import the FBX as Humanoid + use Tools > Setup Idle Animation). Ctrl+S.");
+    }
+
+    // ---------------------------------------------------------------- shared model helpers
+
+    static bool tryMeasure(GameObject go, out Bounds bounds)
+    {
+        var renderers = go.GetComponentsInChildren<Renderer>();
+        bounds = default;
+        if (renderers.Length == 0) return false;
+
+        bounds = renderers[0].bounds;
+        foreach (var r in renderers) bounds.Encapsulate(r.bounds);
+        return true;
+    }
+
+    // Lifts/drops the object so the bottom of its model rests on the floor below it. Its own
+    // colliders are disabled during the raycast so it can't hit itself.
+    static void snapToFloor(GameObject go)
+    {
+        if (!tryMeasure(go, out Bounds bounds)) return;
+
+        var colliders = go.GetComponentsInChildren<Collider>();   // CharacterController is a Collider too
+        var wasEnabled = new bool[colliders.Length];
+        for (int i = 0; i < colliders.Length; i++) { wasEnabled[i] = colliders[i].enabled; colliders[i].enabled = false; }
+
+        Vector3 origin = new Vector3(bounds.center.x, bounds.max.y + 0.3f, bounds.center.z);
+        if (Physics.Raycast(origin, Vector3.down, out RaycastHit hit, 200f))
+        {
+            Undo.RecordObject(go.transform, "Snap to floor");
+            go.transform.position += Vector3.up * (hit.point.y - bounds.min.y);
+        }
+        else
+        {
+            Debug.LogWarning("[M2] Couldn't find a floor under '" + go.name + "' to snap to — position it manually.");
+        }
+
+        for (int i = 0; i < colliders.Length; i++) colliders[i].enabled = wasEnabled[i];
+    }
+
+    // Rebuilds the CharacterController so its capsule wraps the model, regardless of pivot.
+    static void wrapCapsule(GameObject go)
+    {
+        var cc = go.GetComponent<CharacterController>();
+        if (cc == null || !tryMeasure(go, out Bounds b)) return;
+
+        Transform t = go.transform;
+        float sy  = Mathf.Approximately(t.lossyScale.y, 0f) ? 1f : t.lossyScale.y;
+        float sxz = Mathf.Max(Mathf.Abs(t.lossyScale.x), Mathf.Abs(t.lossyScale.z));
+        if (sxz <= 0f) sxz = 1f;
+
+        float worldCenterY = b.min.y + b.size.y * 0.5f;
+        Undo.RecordObject(cc, "Wrap capsule");
+        cc.height = b.size.y / sy;
+        cc.radius = GameManager.PLAYER_RADIUS / sxz;
+        cc.center = new Vector3(0f, (worldCenterY - t.position.y) / sy, 0f);
+    }
+
+    // ---------------------------------------------------------------- content spawners
+
     [MenuItem("Tools/M2/Create Readable Note")]
     public static void CreateNote()
     {
@@ -251,7 +193,6 @@ public static class M2Setup
         finish(go, "Create Note");
     }
 
-    // Tools > M2 > Create Trace Marker — an examinable "traces & remains" clue on the floor.
     [MenuItem("Tools/M2/Create Trace Marker")]
     public static void CreateTrace()
     {
@@ -267,33 +208,6 @@ public static class M2Setup
         finish(go, "Create Trace");
     }
 
-    // ---------------------------------------------------------------- ending path (M2 #4)
-
-    // Tools > M2 > Build Ending Scene — creates Ending.unity (self-building EndingController)
-    // and registers it in Build Settings, then reopens whatever scene you were editing.
-    [MenuItem("Tools/M2/Build Ending Scene")]
-    public static void BuildEndingScene()
-    {
-        if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
-        string previous = SceneManager.GetActiveScene().path;
-
-        var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
-        new GameObject("EndingController").AddComponent<EndingController>();
-        const string path = "Assets/Scenes/Ending.unity";
-        EditorSceneManager.SaveScene(scene, path);
-
-        var scenes = new System.Collections.Generic.List<EditorBuildSettingsScene>(EditorBuildSettings.scenes);
-        if (!scenes.Exists(s => s.path == path))
-            scenes.Add(new EditorBuildSettingsScene(path, true));
-        EditorBuildSettings.scenes = scenes.ToArray();
-
-        if (!string.IsNullOrEmpty(previous))
-            EditorSceneManager.OpenScene(previous, OpenSceneMode.Single);
-
-        Debug.Log("[M2] Built Assets/Scenes/Ending.unity and added it to Build Settings.");
-    }
-
-    // Tools > M2 > Create Supply Pickup — a scavengeable that counts toward the rescue goal.
     [MenuItem("Tools/M2/Create Supply Pickup")]
     public static void CreateSupply()
     {
@@ -307,7 +221,6 @@ public static class M2Setup
         finish(go, "Create Supply");
     }
 
-    // Tools > M2 > Create Escape Zone — the rescue point that ends the run.
     [MenuItem("Tools/M2/Create Escape Zone")]
     public static void CreateEscapeZone()
     {
@@ -321,25 +234,7 @@ public static class M2Setup
         finish(go, "Create Escape Zone");
     }
 
-    // Tools > M2 > Setup Objective Tracker — drives the objective line on the HUD.
-    [MenuItem("Tools/M2/Setup Objective Tracker")]
-    public static void SetupObjective()
-    {
-        if (Object.FindAnyObjectByType<GameplayObjective>() == null)
-        {
-            var go = new GameObject("GameplayObjective");
-            go.AddComponent<GameplayObjective>();
-            Undo.RegisterCreatedObjectUndo(go, "Create GameplayObjective");
-        }
-        if (Object.FindAnyObjectByType<GameState>() == null)
-        {
-            var gm = Object.FindAnyObjectByType<GameManager>();
-            var host = gm != null ? gm.gameObject : new GameObject("GameState");
-            Undo.AddComponent<GameState>(host);
-        }
-        EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
-        Debug.Log("[M2] Objective tracker set up — the HUD now shows supplies gathered / rescue prompt.");
-    }
+    // ---------------------------------------------------------------- spawn helpers
 
     static void setInteractableLayer(GameObject go)
     {
@@ -384,7 +279,6 @@ public static class M2Setup
         Undo.RegisterCreatedObjectUndo(go, label);
         Selection.activeGameObject = go;
         EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
-        Debug.Log($"[M2] {go.name} created in front of the player. Move it onto a surface, set its text in the " +
-                  "Inspector (WorldReadable), then Ctrl+S.");
+        Debug.Log($"[M2] {go.name} created in front of the player. Move it into place, then Ctrl+S.");
     }
 }

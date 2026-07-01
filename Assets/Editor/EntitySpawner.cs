@@ -7,25 +7,6 @@ using UnityEngine.SceneManagement;
 // Tools > Create NPC  and  Tools > Create Zombie
 public static class EntitySpawner
 {
-    [MenuItem("Tools/Create NPC")]
-    public static void CreateNpc()
-    {
-        var go = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-        go.name = "NPC_Survivor";
-
-        // CharacterController handles collision + gravity, so drop the primitive's capsule collider
-        Object.DestroyImmediate(go.GetComponent<CapsuleCollider>());
-        go.AddComponent<Npc>();            // RequireComponent pulls in the CharacterController
-
-        var cc = go.GetComponent<CharacterController>();
-        cc.height = 2f;
-        cc.center = new Vector3(0f, 1f, 0f);
-        cc.radius = 0.5f;
-
-        Place(go, 4f, false);
-        Finish(go, "Create NPC");
-    }
-
     // Builds an idle Animator Controller from any imported "*idle*" clip and puts it on the
     // selected character model. Import a Humanoid idle (e.g. Mixamo, Rig=Humanoid) first.
     // Tools > Setup Idle Animation on Selected
