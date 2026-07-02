@@ -1,6 +1,9 @@
 using UnityEngine;
 
-public enum ItemType { Survival, Comfort, Tool }
+// Serialized by index in item assets — only append, never reorder.
+// Survival = food/water (friend health at night), Medicine = meds (bigger heal),
+// Comfort = personal items (bond when given at night).
+public enum ItemType { Survival, Comfort, Tool, Medicine }
 
 [CreateAssetMenu(fileName = "NewItem", menuName = "3DaysTillDawn/Item")]
 public class ItemData : ScriptableObject

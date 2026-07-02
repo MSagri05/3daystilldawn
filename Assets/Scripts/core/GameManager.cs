@@ -64,6 +64,12 @@ public class GameManager : MonoBehaviour
     public const int HEALTH_LINE         = 40;   // below this at the climax: TURNS
     public const int BOND_LINE           = 50;   // below this (health held): SLIPS_AWAY
     public const int BOND_TALK_AT_NIGHT  = 5;
+    public const int FRIEND_STAT_MAX     = 100;  // both axes live on a hidden 0-100 scale
+
+    // night actions (spec: food ~+15 health, meds ~+20, comfort item ~+15 bond)
+    public const int FRIEND_HEALTH_FOOD     = 15;
+    public const int FRIEND_HEALTH_MEDICINE = 20;
+    public const int BOND_COMFORT_ITEM      = 15;
 
     // narrative state keys (GameState flags/counters) — shared by dialogue, objectives, endings
     public const string FLAG_NIGHT_FELL     = "night_fell";

@@ -81,11 +81,6 @@ public class EndingController : MonoBehaviour
     // clear the run's narrative state so a new playthrough starts fresh
     void resetRun()
     {
-        var s = GameState.Instance;
-        s.clearFlag(GameManager.FLAG_DIED);
-        s.clearFlag(GameManager.FLAG_FRIEND_MET);
-        s.clearFlag(GameManager.FLAG_FRIEND_RESTING);
-        s.clearFlag(GameManager.FLAG_REASSURED);
-        DayCycle.reset();   // day counter + friend health/bond back to starting values
+        DayCycle.reset();   // day counter, friend health/bond, and story flags
     }
 }

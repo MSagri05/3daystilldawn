@@ -38,6 +38,14 @@ public static class DayCycle
         state.setCounter(GameManager.COUNTER_FRIEND_HEALTH, GameManager.FRIEND_HEALTH_START);
         state.setCounter(GameManager.COUNTER_BOND, GameManager.FRIEND_BOND_START);
         state.setCounter(GameManager.COUNTER_LAST_RUN_BOND, 0);
+
+        // narrative flags survive returns to the title screen (GameState is
+        // DontDestroyOnLoad) — a new game must not inherit the previous run's story
+        state.clearFlag(GameManager.FLAG_FRIEND_MET);
+        state.clearFlag(GameManager.FLAG_FRIEND_RESTING);
+        state.clearFlag(GameManager.FLAG_REASSURED);
+        state.clearFlag(GameManager.FLAG_DIED);
+        state.clearFlag(GameManager.FLAG_NIGHT_FELL);
     }
 
     // Player heads out the safe-room door to scavenge.
@@ -59,7 +67,12 @@ public static class DayCycle
     // player wakes up to. After the last night, the ending cascade takes over.
     public static void resolveNight()
     {
-        GameState.Instance?.addCounter(GameManager.COUNTER_FRIEND_HEALTH, -GameManager.FRIEND_HEALTH_DECAY);
+        var state = GameState.Instance;
+        if (state != null) {
+            int health = state.getCounter(GameManager.COUNTER_FRIEND_HEALTH);
+            state.setCounter(GameManager.COUNTER_FRIEND_HEALTH,
+                             Mathf.Max(0, health - GameManager.FRIEND_HEALTH_DECAY));
+        }
 
         if (CurrentDay >= GameManager.TOTAL_DAYS) {
             SceneLoader.load(GameManager.SCENE_ENDING);

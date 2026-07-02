@@ -66,6 +66,14 @@ public class Inventory : MonoBehaviour, IInventory
         carried.AddRange(items);
     }
 
+    // First carried item of a category (e.g. something edible to give the friend)
+    public ItemData firstOfType(ItemType type)
+    {
+        foreach (ItemData item in items)
+            if (item.type == type) return item;
+        return null;
+    }
+
     public bool hasItem(ItemData item)                => items.Contains(item);
     public IReadOnlyList<ItemData> getItems()         => items;
     public int getUsedSlots()                         => usedSlots;
