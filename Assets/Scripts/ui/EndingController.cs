@@ -28,19 +28,8 @@ public class EndingController : MonoBehaviour
                     ? "The dark swallowed you before the third dawn. Somewhere in the mart, Mia waits for a friend who will never come back."
                     : "The horde caught you alone in the aisles. No one was left to remember your name.");
 
-        if (s.getFlag(GameManager.FLAG_ESCAPED))
-        {
-            int bond = s.getCounter(GameManager.COUNTER_BOND);
-            if (s.getFlag(GameManager.FLAG_REASSURED) && bond >= 2)
-                return ("RESCUE — TOGETHER",
-                    "You never left her side. As the helicopter lifts off, Mia grips your hand, fever breaking in the cold wind. You both made it to the third dawn.");
-            if (s.getFlag(GameManager.FLAG_FRIEND_RESTING))
-                return ("RESCUE — A HEAVY COST",
-                    "You reached the roof with the supplies, but the hours you spent scavenging alone left Mia weaker than you feared. The rescue came — you only hope it came in time.");
-            return ("RESCUE",
-                "Supplies in hand, you signal the circling helicopter. As it descends, you allow yourself the first breath in three days that isn't fear.");
-        }
-
+        // TODO(day cycle): the day-3 ending cascade goes here — health gate first,
+        // then bond (TURNS / SLIPS_AWAY / BOTH_SAVED per the Friend System spec).
         return ("THREE DAYS TILL DAWN", "The story isn't over yet...");
     }
 
@@ -82,11 +71,9 @@ public class EndingController : MonoBehaviour
     {
         var s = GameState.Instance;
         s.clearFlag(GameManager.FLAG_DIED);
-        s.clearFlag(GameManager.FLAG_ESCAPED);
         s.clearFlag(GameManager.FLAG_FRIEND_MET);
         s.clearFlag(GameManager.FLAG_FRIEND_RESTING);
         s.clearFlag(GameManager.FLAG_REASSURED);
         s.setCounter(GameManager.COUNTER_BOND, 0);
-        s.setCounter(GameManager.COUNTER_SUPPLIES, 0);
     }
 }

@@ -45,20 +45,25 @@ public class GameManager : MonoBehaviour
 
     public const int INVENTORY_MAX_SLOTS = 8;
 
-    public const string SCENE_TITLE   = "Title";
-    public const string SCENE_INTRO   = "Intro";
-    public const string SCENE_MAIN    = "GameScene";
-    public const string SCENE_ENDING  = "Ending";
+    public const string SCENE_TITLE     = "Title";
+    public const string SCENE_INTRO     = "Intro";
+    public const string SCENE_MAIN      = "GameScene";
+    public const string SCENE_SAFE_ROOM = "SafeRoom";
+    public const string SCENE_ENDING    = "Ending";
 
     // narrative state keys (GameState flags/counters) — shared by dialogue, objectives, endings
+    // daylight timer (see spec: 5-minute scavenging budget, tuned against store size)
+    public const float DAYLIGHT_SECONDS      = 300f;
+    public const int   NIGHT_EXTRA_ZOMBIES   = 4;    // spawned when the timer runs out
+    public const int   BOND_PER_EARLY_MINUTE = 2;    // early-return bond bump per full minute left
+
+    public const string FLAG_NIGHT_FELL     = "night_fell";
     public const string FLAG_FRIEND_MET     = "friend_met";
     public const string FLAG_FRIEND_RESTING = "friend_resting";
     public const string FLAG_REASSURED      = "reassured_friend";
-    public const string FLAG_ESCAPED        = "escaped";
     public const string FLAG_DIED           = "player_died";
-    public const string COUNTER_BOND     = "friend_bond";
-    public const string COUNTER_SUPPLIES = "supplies";
-    public const int    SUPPLIES_GOAL    = 3;
+    public const string COUNTER_BOND          = "friend_bond";
+    public const string COUNTER_LAST_RUN_BOND = "last_run_bond";   // banked on today's early return
 
     public static GameManager Instance { get; private set; }
 

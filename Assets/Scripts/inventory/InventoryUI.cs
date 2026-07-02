@@ -19,6 +19,7 @@ public class InventoryUI : MonoBehaviour
         inventory        = FindAnyObjectByType<Inventory>();
         playerController = FindAnyObjectByType<PlayerController>();
         inventory.onChanged.AddListener(refresh);
+        refresh(new List<ItemData>(inventory.getItems()));   // items carried in from the previous scene
         panelRoot.SetActive(false);
     }
 

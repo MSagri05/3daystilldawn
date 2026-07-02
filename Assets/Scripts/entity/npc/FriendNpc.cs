@@ -59,14 +59,13 @@ public class FriendNpc : MonoBehaviour, IInteractable
                 }));
     }
 
-    // Later visits: reacts to how many supplies the player has gathered, and drops an
-    // observational hint that the friend's condition is worsening (infection).
+    // Later visits: an observational hint that the friend's condition is worsening.
+    // TODO(night check-in): vary this by day number and friend health per the spec —
+    // talkative early, scared and distant midway, barely responsive by the end.
     void talkAgain(DialogueUI dialogue, GameState state)
     {
-        int supplies = state != null ? state.getCounter(GameManager.COUNTER_SUPPLIES) : 0;
-        string line = supplies >= GameManager.SUPPLIES_GOAL
-            ? "You actually found enough to get us moving... maybe we'll make it. My fever's worse though — don't say it's nothing."
-            : "Any luck out there? I don't think I can hold on much longer without meds.";
-        dialogue.show(friendName, line, () => dialogue.close());
+        dialogue.show(friendName,
+            "You're back... good. My fever's worse — don't say it's nothing.",
+            () => dialogue.close());
     }
 }

@@ -21,13 +21,14 @@ public class MainMenu : MonoBehaviour
     // Title "Start Game": step into the introduction before the main scene.
     public void startGame()
     {
+        Inventory.clearCarried();   // a new game starts empty-handed
         SceneLoader.load(GameManager.SCENE_INTRO);
     }
 
-    // Intro "Continue": drop the player into the main gameplay scene.
+    // Intro "Continue": start the first day in the safe room with the friend.
     public void continueToGame()
     {
-        SceneLoader.load(GameManager.SCENE_MAIN);
+        SceneLoader.load(GameManager.SCENE_SAFE_ROOM);
     }
 
     // Any "Back" button that returns to the Title scene.
