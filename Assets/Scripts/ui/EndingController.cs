@@ -28,9 +28,21 @@ public class EndingController : MonoBehaviour
                     ? "The dark swallowed you before the third dawn. Somewhere in the mart, Mia waits for a friend who will never come back."
                     : "The horde caught you alone in the aisles. No one was left to remember your name.");
 
-        // TODO(day cycle): the day-3 ending cascade goes here — health gate first,
-        // then bond (TURNS / SLIPS_AWAY / BOTH_SAVED per the Friend System spec).
-        return ("THREE DAYS TILL DAWN", "The story isn't over yet...");
+        // The spec's ordered check: health gates first — a failing body turns no matter
+        // how strong the bond. Only then does the will to hold on decide it.
+        int health = s.getCounter(GameManager.COUNTER_FRIEND_HEALTH);
+        int bond   = s.getCounter(GameManager.COUNTER_BOND);
+
+        if (health < GameManager.HEALTH_LINE)
+            return ("SHE TURNS",
+                "You did everything you could think of, but her body lost the race. On the third dawn the thing wearing Mia's face doesn't know your name.");
+
+        if (bond < GameManager.BOND_LINE)
+            return ("SHE SLIPS AWAY",
+                "Her fever broke. It wasn't enough. Somewhere in those three days she stopped believing anyone was coming back for her — the safe room is empty, the door left open.");
+
+        return ("BOTH SAVED",
+            "Restrained, burning, furious — and still herself. When the fever finally breaks, Mia is holding your hand. You both made it to the third dawn.");
     }
 
     void build()
@@ -74,6 +86,6 @@ public class EndingController : MonoBehaviour
         s.clearFlag(GameManager.FLAG_FRIEND_MET);
         s.clearFlag(GameManager.FLAG_FRIEND_RESTING);
         s.clearFlag(GameManager.FLAG_REASSURED);
-        s.setCounter(GameManager.COUNTER_BOND, 0);
+        DayCycle.reset();   // day counter + friend health/bond back to starting values
     }
 }

@@ -13,6 +13,15 @@ public class DialogueUI : MonoBehaviour
 
     public bool IsOpen { get; private set; }
 
+    // The frame the dialogue last closed. PlayerInteractor checks this so the key
+    // press that dismissed the final line can't re-trigger the NPC the same frame.
+    public int LastClosedFrame { get; private set; } = -1;
+
+    // GetKeyDown stays true for the whole frame, so the E that opened the dialogue
+    // would also "advance" it instantly — single-line conversations would open and
+    // close invisibly. Ignore advance input on the frame a line appears.
+    int shownFrame = -1;
+
     static readonly Color PANEL_BG = new Color(0.04f, 0.05f, 0.07f, 0.94f);
 
     GameObject panel;
@@ -35,7 +44,7 @@ public class DialogueUI : MonoBehaviour
     void Update()
     {
         // let Space / E advance a plain line (choices must be clicked)
-        if (IsOpen && continueButton.gameObject.activeSelf &&
+        if (IsOpen && shownFrame != Time.frameCount && continueButton.gameObject.activeSelf &&
             (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.E)))
             continueClicked();
     }
@@ -63,6 +72,7 @@ public class DialogueUI : MonoBehaviour
     public void close()
     {
         IsOpen = false;
+        LastClosedFrame = Time.frameCount;
         onContinue = null;
         onChoose = null;
         clearChoices();
@@ -80,6 +90,7 @@ public class DialogueUI : MonoBehaviour
             panel.SetActive(true);
             freezePlayer(true);
         }
+        shownFrame = Time.frameCount;
         speakerLabel.text = speaker;
         bodyLabel.text = line;
     }

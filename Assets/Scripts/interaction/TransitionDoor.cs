@@ -14,7 +14,13 @@ public class TransitionDoor : MonoBehaviour, IInteractable
 
     public void interact(PlayerInteractor interactor)
     {
-        if (targetScene == GameManager.SCENE_SAFE_ROOM) applyEarlyReturnBond();
+        if (targetScene == GameManager.SCENE_SAFE_ROOM) {
+            applyEarlyReturnBond();
+            DayCycle.endRun();
+        }
+        else if (targetScene == GameManager.SCENE_MAIN) {
+            DayCycle.startRun();
+        }
 
         SpawnPoint.nextSpawnId = targetSpawnId;
         SceneLoader.load(targetScene);

@@ -208,32 +208,6 @@ public static class M2Setup
         finish(go, "Create Trace");
     }
 
-    [MenuItem("Tools/M2/Create Supply Pickup")]
-    public static void CreateSupply()
-    {
-        var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        go.name = "Supply";
-        go.transform.localScale = new Vector3(0.3f, 0.3f, 0.3f);
-        colorize(go, new Color(0.3f, 0.7f, 0.4f));      // medkit green
-        go.AddComponent<SupplyPickup>();
-        setInteractableLayer(go);
-        placeInFront(go, 2f, 0.5f);
-        finish(go, "Create Supply");
-    }
-
-    [MenuItem("Tools/M2/Create Escape Zone")]
-    public static void CreateEscapeZone()
-    {
-        var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        go.name = "EscapeZone";
-        go.transform.localScale = new Vector3(1.6f, 0.1f, 1.6f);
-        colorize(go, new Color(0.85f, 0.75f, 0.2f));    // signal pad
-        go.AddComponent<EscapeZone>();
-        setInteractableLayer(go);
-        placeInFront(go, 3f, 0.05f);
-        finish(go, "Create Escape Zone");
-    }
-
     // ---------------------------------------------------------------- spawn helpers
 
     static void setInteractableLayer(GameObject go)
@@ -243,7 +217,7 @@ public static class M2Setup
         else Debug.LogError("[M2] No 'Interactable' layer — set it in Project Settings > Tags and Layers.");
     }
 
-    static void setupReadable(GameObject go, string title, string verb, string body, string flag, string objective)
+    static void setupReadable(GameObject go, string title, string verb, string body, string flag, string objective = "")
     {
         var readable = go.AddComponent<WorldReadable>();
         var so = new SerializedObject(readable);
@@ -251,7 +225,6 @@ public static class M2Setup
         so.FindProperty("promptVerb").stringValue = verb;
         so.FindProperty("body").stringValue = body;
         so.FindProperty("discoverFlag").stringValue = flag;
-        so.FindProperty("revealObjective").stringValue = objective;
         so.ApplyModifiedPropertiesWithoutUndo();
 
         setInteractableLayer(go);

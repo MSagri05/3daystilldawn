@@ -21,6 +21,9 @@ public class GameState : MonoBehaviour
 
         Instance = this;
         DontDestroyOnLoad(gameObject);
+
+        // a new game started from the title screen (no GameState there) seeds here
+        DayCycle.applyPendingSeed();
     }
 
     public void setFlag(string key, bool value = true)

@@ -22,6 +22,7 @@ public class MainMenu : MonoBehaviour
     public void startGame()
     {
         Inventory.clearCarried();   // a new game starts empty-handed
+        DayCycle.reset();           // day 1 morning, friend stats at starting values
         SceneLoader.load(GameManager.SCENE_INTRO);
     }
 

@@ -51,18 +51,28 @@ public class GameManager : MonoBehaviour
     public const string SCENE_SAFE_ROOM = "SafeRoom";
     public const string SCENE_ENDING    = "Ending";
 
-    // narrative state keys (GameState flags/counters) — shared by dialogue, objectives, endings
     // daylight timer (see spec: 5-minute scavenging budget, tuned against store size)
     public const float DAYLIGHT_SECONDS      = 300f;
     public const int   NIGHT_EXTRA_ZOMBIES   = 4;    // spawned when the timer runs out
     public const int   BOND_PER_EARLY_MINUTE = 2;    // early-return bond bump per full minute left
 
+    // day cycle + friend variables — spec starter numbers, all tunable here
+    public const int TOTAL_DAYS          = 3;
+    public const int FRIEND_HEALTH_START = 70;   // already bitten
+    public const int FRIEND_BOND_START   = 20;   // the secret is creating distance
+    public const int FRIEND_HEALTH_DECAY = 25;   // per night, applied automatically
+    public const int HEALTH_LINE         = 40;   // below this at the climax: TURNS
+    public const int BOND_LINE           = 50;   // below this (health held): SLIPS_AWAY
+    public const int BOND_TALK_AT_NIGHT  = 5;
+
+    // narrative state keys (GameState flags/counters) — shared by dialogue, objectives, endings
     public const string FLAG_NIGHT_FELL     = "night_fell";
     public const string FLAG_FRIEND_MET     = "friend_met";
     public const string FLAG_FRIEND_RESTING = "friend_resting";
     public const string FLAG_REASSURED      = "reassured_friend";
     public const string FLAG_DIED           = "player_died";
     public const string COUNTER_BOND          = "friend_bond";
+    public const string COUNTER_FRIEND_HEALTH = "friend_health";
     public const string COUNTER_LAST_RUN_BOND = "last_run_bond";   // banked on today's early return
 
     public static GameManager Instance { get; private set; }

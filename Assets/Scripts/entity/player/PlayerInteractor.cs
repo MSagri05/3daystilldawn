@@ -22,9 +22,18 @@ public class PlayerInteractor : MonoBehaviour
     {
         scanForInteractable();
 
-        if (currentTarget != null && Input.GetKeyDown(KeyCode.E)) {
+        if (currentTarget != null && Input.GetKeyDown(KeyCode.E) && !dialogueSwallowsInput()) {
             currentTarget.interact(this);
         }
+    }
+
+    // E also advances dialogue lines: while a conversation is open (or on the very
+    // frame it closed) the press belongs to the dialogue window, not the world.
+    bool dialogueSwallowsInput()
+    {
+        var dialogue = DialogueUI.Instance;
+        if (dialogue == null) return false;
+        return dialogue.IsOpen || dialogue.LastClosedFrame == Time.frameCount;
     }
 
     void scanForInteractable()

@@ -15,10 +15,31 @@ public class FriendNpc : MonoBehaviour, IInteractable
         if (dialogue == null || dialogue.IsOpen) return;
 
         var state = GameState.Instance;
-        if (state != null && state.getFlag(GameManager.FLAG_FRIEND_MET))
+        if (DayCycle.CurrentPhase == DayCycle.Phase.Night)
+            nightCheckIn(dialogue, state);
+        else if (state != null && state.getFlag(GameManager.FLAG_FRIEND_MET))
             talkAgain(dialogue, state);
         else
             firstMeeting(dialogue, state);
+    }
+
+    // The night check-in: talking is the one night action so far (feed / comfort item /
+    // rest come later). Closing the conversation resolves the night and starts the next
+    // morning — or, after the last day, the ending cascade.
+    void nightCheckIn(DialogueUI dialogue, GameState state)
+    {
+        state?.addCounter(GameManager.COUNTER_BOND, GameManager.BOND_TALK_AT_NIGHT);
+
+        int banked = state != null ? state.getCounter(GameManager.COUNTER_LAST_RUN_BOND) : 0;
+        string line = banked > 0
+            ? "You came back while it was still light... it helps, having you here. Stay a while?"
+            : "It got so dark out there. I keep thinking one of these nights you won't come back.";
+
+        dialogue.show(friendName, line, () =>
+        {
+            dialogue.close();
+            DayCycle.resolveNight();
+        });
     }
 
     // Opening conversation: one branching choice that sets the tone of the relationship.

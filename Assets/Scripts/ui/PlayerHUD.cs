@@ -20,6 +20,7 @@ public class PlayerHUD : MonoBehaviour
     RectTransform healthFill;
     TextMeshProUGUI healthLabel;
     TextMeshProUGUI objectiveLabel;
+    TextMeshProUGUI dayLabel;
     GameObject deathOverlay;
 
     Health playerHealth;
@@ -46,6 +47,15 @@ public class PlayerHUD : MonoBehaviour
             Debug.LogWarning("[PlayerHUD] No Health found on the player — health bar will stay full. " +
                              "Run Tools > M2 > Setup Survival.");
         }
+
+        DayCycle.onChanged += updateDayLabel;
+        updateDayLabel();
+    }
+
+    void OnDestroy()
+    {
+        // DayCycle.onChanged is static — a destroyed HUD must let go or it leaks
+        DayCycle.onChanged -= updateDayLabel;
     }
 
     // ---- public API (used by objectives / quests later) ----
@@ -54,6 +64,13 @@ public class PlayerHUD : MonoBehaviour
     {
         if (objectiveLabel != null)
             objectiveLabel.text = string.IsNullOrEmpty(text) ? "" : "Objective:  " + text;
+    }
+
+    // Day counter, top-center ("Day 1 of 3 — Morning")
+    void updateDayLabel()
+    {
+        if (dayLabel != null)
+            dayLabel.text = $"Day {DayCycle.CurrentDay} of {GameManager.TOTAL_DAYS} — {DayCycle.CurrentPhase}";
     }
 
     // ---- reactions ----
@@ -114,12 +131,19 @@ public class PlayerHUD : MonoBehaviour
         healthLabel = text(barBg.transform, "HealthLabel", "100 / 100", 20, Color.white, TextAlignmentOptions.Center);
         stretch(healthLabel.rectTransform);
 
-        // objective line, top-center
-        objectiveLabel = text(root, "Objective", "", 28, Color.white, TextAlignmentOptions.Top);
+        // day counter, top-center
+        dayLabel = text(root, "DayCounter", "", 28, Color.white, TextAlignmentOptions.Top);
+        anchor(dayLabel.rectTransform, new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0.5f, 1));
+        dayLabel.rectTransform.anchoredPosition = new Vector2(0, -30);
+        dayLabel.rectTransform.sizeDelta = new Vector2(1200, 44);
+        UiFactory.outline(dayLabel);   // stays readable over bright surfaces
+
+        // objective / story-note line, below the day counter
+        objectiveLabel = text(root, "Objective", "", 24, new Color(0.95f, 0.9f, 0.7f, 1f), TextAlignmentOptions.Top);
         anchor(objectiveLabel.rectTransform, new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0.5f, 1));
-        objectiveLabel.rectTransform.anchoredPosition = new Vector2(0, -30);
-        objectiveLabel.rectTransform.sizeDelta = new Vector2(1200, 44);
-        UiFactory.outline(objectiveLabel);   // stays readable over bright surfaces
+        objectiveLabel.rectTransform.anchoredPosition = new Vector2(0, -72);
+        objectiveLabel.rectTransform.sizeDelta = new Vector2(1200, 40);
+        UiFactory.outline(objectiveLabel);
 
         buildCrosshair(root);
         buildDeathOverlay(root);
