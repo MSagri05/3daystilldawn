@@ -59,23 +59,8 @@ public class DaylightTimer : MonoBehaviour
 
     void spawnNightZombies()
     {
-        if (nightSpawnPoints == null || nightSpawnPoints.Length == 0) return;
-
-        GameObject prefab = zombiePrefab;
-        if (prefab == null) {
-            // fall back to cloning a zombie already placed in the scene
-            Zombie existing = FindAnyObjectByType<Zombie>();
-            if (existing == null) {
-                Debug.LogWarning("[DaylightTimer] Night fell but there is no zombie prefab or scene zombie to clone.");
-                return;
-            }
-            prefab = existing.gameObject;
-        }
-
-        for (int i = 0; i < GameManager.NIGHT_EXTRA_ZOMBIES; i++) {
-            Transform point = nightSpawnPoints[i % nightSpawnPoints.Length];
-            Instantiate(prefab, point.position, point.rotation);
-        }
+        ZombieSpawning.spawnAt(zombiePrefab, nightSpawnPoints,
+                               GameManager.NIGHT_EXTRA_ZOMBIES, "DaylightTimer");
     }
 
     // ---------------------------------------------------------------- ui
