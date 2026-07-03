@@ -49,6 +49,8 @@ public class PlayerHUD : MonoBehaviour
         }
 
         DayCycle.onChanged += updateDayLabel;
+        // the morning objective flips once Mia has been talked to, which is a flag change
+        GameState.Instance?.onFlagChanged.AddListener(onFlagChanged);
         updateDayLabel();
     }
 
@@ -56,6 +58,12 @@ public class PlayerHUD : MonoBehaviour
     {
         // DayCycle.onChanged is static — a destroyed HUD must let go or it leaks
         DayCycle.onChanged -= updateDayLabel;
+        GameState.Instance?.onFlagChanged.RemoveListener(onFlagChanged);
+    }
+
+    void onFlagChanged(string key, bool value)
+    {
+        if (key.StartsWith(GameManager.MORNING_TALKED_PREFIX)) refreshObjective();
     }
 
     // ---- public API (used by objectives / quests later) ----
@@ -83,7 +91,11 @@ public class PlayerHUD : MonoBehaviour
         switch (DayCycle.CurrentPhase)
         {
             case DayCycle.Phase.Morning:
-                setObjective("Head out through the door to scavenge the store");
+                bool talkedToMia = GameState.Instance != null &&
+                    GameState.Instance.getFlag(GameManager.MORNING_TALKED_PREFIX + DayCycle.CurrentDay);
+                setObjective(talkedToMia
+                    ? "Head out through the door to scavenge the store"
+                    : "Check in with Mia");
                 break;
             case DayCycle.Phase.Scavenging:
                 setObjective("Find food, medicine, or comfort — return before nightfall");

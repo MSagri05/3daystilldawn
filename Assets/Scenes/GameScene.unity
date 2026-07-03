@@ -63561,8 +63561,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4182c4d07dcfa734db7e2cc8cdeadc4d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DaylightTimer
-  nightSpawnPoints: []
-  zombiePrefab: {fileID: 0}
+  nightSpawnPoints:
+  - {fileID: 1232567356}
+  - {fileID: 770106399}
+  - {fileID: 32233920}
+  - {fileID: 529601637}
+  zombiePrefab: {fileID: 7337625458603134504, guid: b41a00921e41306488bf4ed306b1468f, type: 3}
 --- !u!4 &1658846440
 Transform:
   m_ObjectHideFlags: 0

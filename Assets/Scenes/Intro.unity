@@ -176,11 +176,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "A zombie horde has torn through the town. You and your friend are stranded
-    with no way out but to hold on.\n\nExplore the abandoned mart, gather what you
-    can, and keep your friend alive. Rescue arrives in three days \u2014 if you both
-    make it that far.\n\nWatch your friend closely. Their body language tells you
-    more than words ever could."
+  m_text: "The convoy never made it past the mall. A roaming horde hit the parking lot \u2014 the group scattered, and you fled inside with your friend Mia and a wounded soldier.\n\nBefore he died, the soldier sent out an SOS: help will come in three days.\n\nScavenge the mall by day, but watch the clock \u2014 night is not kind to anyone caught outside the safe room. Return to Mia each evening. Keep her body strong and her hope alive.\n\nWatch her closely. Her body language tells you more than words ever could."
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -1117,7 +1113,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &2076962715
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1157,8 +1153,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "WASD  \u2014  Move\nMouse  \u2014  Look / Aim\nLeft Shift  \u2014  Sprint\nSpace 
-    \u2014  Jump\nE  \u2014  Interact / Pick up\nTab  \u2014  Toggle inventory"
+  m_text: "WASD  \u2014  Move\nMouse  \u2014  Look\nLeft Shift  \u2014  Sprint\nSpace  \u2014  Jump\nE  \u2014  Interact / Pick up\nTab  \u2014  Toggle inventory\n\nEach morning, head out the safe room door to scavenge before nightfall.\nFood and medicine keep Mia's body fighting; time together and the right\nkeepsakes keep her spirit fighting. You will not have daylight for everything.\n\nSpend the evening with her, then rest. Rescue comes after the third night."
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
