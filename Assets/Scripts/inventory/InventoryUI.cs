@@ -51,8 +51,12 @@ public class InventoryUI : MonoBehaviour
             if (icon  && item.icon) icon.sprite = item.icon;
             if (label)              label.text  = item.itemName;
 
+            // click to use (eat food / take meds); the prefab has no Button, so add one
             var button = slot.GetComponent<Button>();
-            if (button) button.onClick.AddListener(() => inventory.useItem(item));
+            if (button == null) button = slot.AddComponent<Button>();
+            if (button.targetGraphic == null) button.targetGraphic = icon;
+            ItemData captured = item;
+            button.onClick.AddListener(() => inventory.useItem(captured));
         }
 
         if (slotCountText) {

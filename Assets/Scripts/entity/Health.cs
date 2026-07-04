@@ -20,6 +20,15 @@ public class Health : MonoBehaviour
         Current = maxHealth;
     }
 
+    // Change the ceiling (lasting wounds / treatment). Current is clamped into the
+    // new range; listeners get the change through the usual event.
+    public void setMax(float newMax)
+    {
+        maxHealth = Mathf.Max(1f, newMax);
+        Current = Mathf.Min(Current, maxHealth);
+        onHealthChanged.Invoke(Current, maxHealth);
+    }
+
     public void damage(float amount)
     {
         if (amount <= 0f || IsDead) return;
@@ -30,7 +39,7 @@ public class Health : MonoBehaviour
 
     public void heal(float amount)
     {
-        if (amount <= 0f || IsDead) return;
+        if (amount <= 0f || IsDead || Current >= maxHealth) return;
         applyDelta(amount);
     }
 

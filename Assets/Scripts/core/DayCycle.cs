@@ -19,11 +19,14 @@ public static class DayCycle
     // counters yet; GameState.Awake collects the seed when the first gameplay scene loads.
     static bool seedPending;
 
+
     // New game: day 1 morning, friend stats at their spec starting points.
     public static void reset()
     {
         CurrentDay = 1;
         CurrentPhase = Phase.Morning;
+        PlayerCondition.reset();     // unhurt and well-fed on a new game
+        DaylightTimer.resetClock();  // fresh daylight budget
         seedPending = true;
         applyPendingSeed();
         onChanged?.Invoke();
@@ -79,6 +82,9 @@ public static class DayCycle
                              Mathf.Max(0, health - GameManager.FRIEND_HEALTH_DECAY));
         }
 
+        // the player gets hungrier too — stamina capacity shrinks unless they eat
+        PlayerCondition.starve(GameManager.HUNGER_STAMINA_DECAY);
+
         if (CurrentDay >= GameManager.TOTAL_DAYS) {
             SceneLoader.load(GameManager.SCENE_ENDING);
             return;
@@ -86,6 +92,8 @@ public static class DayCycle
 
         CurrentDay++;
         CurrentPhase = Phase.Morning;
+        // yesterday's early-return record belongs to yesterday
+        state?.setCounter(GameManager.COUNTER_LAST_RUN_BOND, 0);
         onChanged?.Invoke();
     }
 }

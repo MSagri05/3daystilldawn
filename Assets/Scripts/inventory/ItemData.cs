@@ -20,8 +20,21 @@ public class ItemData : ScriptableObject
     [Tooltip("If true, the item is removed from the inventory after a successful use")]
     public bool consumable = true;
 
+    // Self-use from the inventory: food restores the player's stamina capacity,
+    // medicine mends max HP (both live in PlayerCondition, so they persist across
+    // scenes). Comfort and tool items have no self-use — they're for Mia / later.
     public virtual bool use(GameObject user)
     {
-        return false;
+        switch (type)
+        {
+            case ItemType.Survival:
+                PlayerCondition.eat(GameManager.FOOD_STAMINA_RESTORE);
+                return true;
+            case ItemType.Medicine:
+                PlayerCondition.treat(GameManager.MEDICINE_MAX_HP_RESTORE);
+                return true;
+            default:
+                return false;
+        }
     }
 }

@@ -15,7 +15,7 @@ public class TransitionDoor : MonoBehaviour, IInteractable
     public void interact(PlayerInteractor interactor)
     {
         if (targetScene == GameManager.SCENE_SAFE_ROOM) {
-            applyEarlyReturnBond();
+            recordEarlyReturn();
             DayCycle.endRun();
         }
         else if (targetScene == GameManager.SCENE_MAIN) {
@@ -26,22 +26,22 @@ public class TransitionDoor : MonoBehaviour, IInteractable
         SceneLoader.load(targetScene);
     }
 
-    // Ending the run early means more evening with the friend (spec: time remaining
-    // converts to a small bond bump; letting night fall forfeits it).
-    void applyEarlyReturnBond()
+    // Record how early this return is (spec: time remaining converts to a bond bump).
+    // Only recorded here — the bond itself banks when the player actually spends the
+    // evening: FriendNpc applies it on "Rest until morning". Each return overwrites
+    // the record, so the day's LAST return is what counts; nightfall forfeits it.
+    void recordEarlyReturn()
     {
         GameState state = GameState.Instance;
-        if (state != null) state.setCounter(GameManager.COUNTER_LAST_RUN_BOND, 0);
+        if (state == null) return;
 
         DaylightTimer timer = DaylightTimer.Instance;
-        if (timer == null || timer.NightFell) return;
-
-        int minutesLeft = Mathf.FloorToInt(timer.RemainingSeconds / 60f);
-        int bump = minutesLeft * GameManager.BOND_PER_EARLY_MINUTE;
-        if (bump > 0 && state != null) {
-            state.addCounter(GameManager.COUNTER_BOND, bump);
-            // remembered separately so the night check-in can acknowledge it
-            state.setCounter(GameManager.COUNTER_LAST_RUN_BOND, bump);
+        int bump = 0;
+        if (timer != null && !timer.NightFell) {
+            int minutesLeft = Mathf.FloorToInt(timer.RemainingSeconds / 60f);
+            bump = minutesLeft * GameManager.BOND_PER_EARLY_MINUTE;
         }
+
+        state.setCounter(GameManager.COUNTER_LAST_RUN_BOND, bump);
     }
 }

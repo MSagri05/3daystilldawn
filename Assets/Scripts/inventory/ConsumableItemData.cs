@@ -8,6 +8,8 @@ public class ConsumableItemData : ItemData
 
     public override bool use(GameObject user)
     {
+        base.use(user);   // apply the type-based condition effect (food/meds)
+
         if (!string.IsNullOrEmpty(setFlagOnUse) && GameState.Instance != null) {
             GameState.Instance.setFlag(setFlagOnUse);
         }

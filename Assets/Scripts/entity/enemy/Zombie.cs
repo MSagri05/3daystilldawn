@@ -110,6 +110,7 @@ public class Zombie : MonoBehaviour
         if (flat.magnitude > GameManager.ZOMBIE_ATTACK_RANGE) return;
 
         targetHealth.damage(GameManager.ZOMBIE_ATTACK_DAMAGE);
+        PlayerCondition.wound(GameManager.ZOMBIE_WOUND_MAX_HP);   // bites leave lasting damage
         attackCooldown = GameManager.ZOMBIE_ATTACK_COOLDOWN;
     }
 

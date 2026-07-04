@@ -68,7 +68,17 @@ public class GameManager : MonoBehaviour
 
     public const float PLAYER_MAX_HEALTH = 100f;
 
-    public const float  INTERACT_RANGE          = 3f;
+    // --- player condition (persistent across scenes; see PlayerCondition) ---
+    public const float STAMINA_START_MAX   = 60f;    // starting stamina capacity (x% of the bar)
+    public const float PLAYER_HEALTH_REGEN = 1.5f;   // HP per second, up to the current max
+    public const float PLAYER_MIN_MAX_HEALTH   = 20f;   // wounds can't take max HP below this
+    public const float ZOMBIE_WOUND_MAX_HP     = 4f;    // lasting max-HP loss per zombie hit
+    public const float STAMINA_MIN_MAX         = 40f;   // hunger can't take stamina capacity below this
+    public const float HUNGER_STAMINA_DECAY    = 20f;   // stamina capacity lost per night
+    public const float FOOD_STAMINA_RESTORE    = 25f;   // eating food: stamina capacity back
+    public const float MEDICINE_MAX_HP_RESTORE = 25f;   // using meds: max HP back
+
+    public const float  INTERACT_RANGE          = 5f;
     public const string INTERACTABLE_LAYER_NAME = "Interactable";
 
     public const int INVENTORY_MAX_SLOTS = 8;

@@ -7,6 +7,7 @@ public class PlayerController : MonoBehaviour
 
     CharacterController controller;
     Stamina stamina;   // optional — movement works without it
+    Health health;
 
     Vector3 horizontalMotion;   // world XZ, carried between ticks
     float verticalMotion;       // world Y
@@ -33,6 +34,7 @@ public class PlayerController : MonoBehaviour
     {
         controller = GetComponent<CharacterController>();
         stamina    = GetComponent<Stamina>();
+        health     = GetComponent<Health>();
 
         controller.height = GameManager.PLAYER_HEIGHT;
         controller.radius = GameManager.PLAYER_RADIUS;
@@ -45,6 +47,24 @@ public class PlayerController : MonoBehaviour
         }
 
         lockCursor(true);
+    }
+
+    void Start()
+    {
+        // bind the persistent condition (wounds, hunger) to this scene's components
+        applyCondition();
+        PlayerCondition.onChanged += applyCondition;
+    }
+
+    void OnDestroy()
+    {
+        PlayerCondition.onChanged -= applyCondition;   // static event — must let go
+    }
+
+    void applyCondition()
+    {
+        if (health  != null) health.setMax(PlayerCondition.MaxHealth);
+        if (stamina != null) stamina.setMax(PlayerCondition.MaxStamina);
     }
 
     void Update()
@@ -64,6 +84,9 @@ public class PlayerController : MonoBehaviour
         controller.Move(moveVelocity * (Time.deltaTime / GameManager.MC_TICK));
 
         updateCrouchCamera();
+
+        // slow natural recovery — only ever up to the current (possibly wounded) max
+        health?.heal(GameManager.PLAYER_HEALTH_REGEN * Time.deltaTime);
     }
 
     // Ease the eye down while crouched and back up on release. Only the holder's

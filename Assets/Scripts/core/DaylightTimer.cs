@@ -1,11 +1,13 @@
 using UnityEngine;
 using TMPro;
 
-// The daylight budget for one scavenging run. Lives in the store scene: starts
-// counting down as soon as the scene loads, and shows the remaining time top-right
-// (it builds its own canvas, same pattern as PlayerHUD, so nothing is wired in the
-// editor). When it hits zero, night falls: extra zombies spawn and the early-return
-// bond bump is forfeited (TransitionDoor checks NightFell before granting it).
+// The daylight budget for one in-game day. Lives in the store scene and shows the
+// remaining time top-right (it builds its own canvas, same pattern as PlayerHUD).
+// The clock is continuous per DAY, not per visit: popping home and coming back
+// resumes where it left off (state is static, stamped with the day it belongs to,
+// so a new day — or a new game — starts a fresh budget). When it hits zero, night
+// falls: extra zombies spawn (again on every re-entry that night) and the
+// early-return bond bump is forfeited.
 public class DaylightTimer : MonoBehaviour
 {
     public static DaylightTimer Instance { get; private set; }
@@ -16,6 +18,11 @@ public class DaylightTimer : MonoBehaviour
     [Tooltip("Zombie prefab spawned at night. If unset, an existing scene zombie is cloned.")]
     [SerializeField] GameObject zombiePrefab;
 
+    // today's clock, surviving scene reloads; stamped with the day it belongs to
+    static float remainingToday;
+    static bool  nightFellToday;
+    static int   stampedDay;
+
     float remaining;
     bool nightFell;
     TextMeshProUGUI label;
@@ -23,17 +30,37 @@ public class DaylightTimer : MonoBehaviour
     public float RemainingSeconds => remaining;
     public bool NightFell => nightFell;
 
+    // New game: forget the previous run's clock (called by DayCycle.reset).
+    public static void resetClock()
+    {
+        stampedDay = 0;
+    }
+
     void Awake()
     {
         Instance = this;
-        remaining = GameManager.DAYLIGHT_SECONDS;
+
+        // fresh budget on a new day; otherwise resume today's clock
+        if (stampedDay != DayCycle.CurrentDay) {
+            stampedDay      = DayCycle.CurrentDay;
+            remainingToday  = GameManager.DAYLIGHT_SECONDS;
+            nightFellToday  = false;
+        }
+        remaining = remainingToday;
+        nightFell = nightFellToday;
+
         buildLabel();
     }
 
     void Start()
     {
-        // a fresh run means the previous run's night is over
-        GameState.Instance?.clearFlag(GameManager.FLAG_NIGHT_FELL);
+        if (nightFell) {
+            // re-entering the store after dark: night is still on
+            GameState.Instance?.setFlag(GameManager.FLAG_NIGHT_FELL);
+            spawnNightZombies();   // the scene reloaded, so the night pack respawns
+        } else {
+            GameState.Instance?.clearFlag(GameManager.FLAG_NIGHT_FELL);
+        }
         updateLabel();
     }
 
@@ -42,6 +69,7 @@ public class DaylightTimer : MonoBehaviour
         if (nightFell) return;
 
         remaining -= Time.deltaTime;
+        remainingToday = remaining;
         if (remaining <= 0f) {
             remaining = 0f;
             fallNight();
@@ -53,6 +81,7 @@ public class DaylightTimer : MonoBehaviour
     void fallNight()
     {
         nightFell = true;
+        nightFellToday = true;
         GameState.Instance?.setFlag(GameManager.FLAG_NIGHT_FELL);
         spawnNightZombies();
     }

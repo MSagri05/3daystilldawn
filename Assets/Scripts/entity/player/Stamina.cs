@@ -7,7 +7,7 @@ using UnityEngine.Events;
 // emptied, sprint stays disabled until stamina climbs back past a recovery threshold.
 public class Stamina : MonoBehaviour
 {
-    public float Max => GameManager.STAMINA_MAX;
+    public float Max { get; private set; } = GameManager.STAMINA_MAX;
     public float Current { get; private set; }
 
     public bool IsExhausted { get; private set; }
@@ -22,6 +22,14 @@ public class Stamina : MonoBehaviour
     void Awake()
     {
         Current = Max;
+    }
+
+    // Change the capacity (hunger / eating). Current is clamped into the new range.
+    public void setMax(float newMax)
+    {
+        Max = Mathf.Max(1f, newMax);
+        Current = Mathf.Min(Current, Max);
+        onChanged.Invoke(Current, Max);
     }
 
     void Update()

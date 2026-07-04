@@ -123,16 +123,19 @@ public class PlayerHUD : MonoBehaviour
 
     // ---- reactions ----
 
+    // Both bars are drawn against the ABSOLUTE scale (100), not the current max —
+    // lost capacity (wounds, hunger) shows as bar that can never fill: e.g. at 75
+    // capacity the fill tops out at 75% and the last quarter stays empty black.
     void updateHealth(float current, float max)
     {
-        float ratio = max > 0f ? Mathf.Clamp01(current / max) : 0f;
+        float ratio = Mathf.Clamp01(current / GameManager.PLAYER_MAX_HEALTH);
         if (healthFill != null)  healthFill.sizeDelta = new Vector2(BAR_WIDTH * ratio, BAR_HEIGHT);
         if (healthLabel != null) healthLabel.text = Mathf.CeilToInt(current) + " / " + Mathf.CeilToInt(max);
     }
 
     void updateStamina(float current, float max)
     {
-        float ratio = max > 0f ? Mathf.Clamp01(current / max) : 0f;
+        float ratio = Mathf.Clamp01(current / GameManager.STAMINA_MAX);
         if (staminaFill != null)
             staminaFill.sizeDelta = new Vector2(BAR_WIDTH * ratio, STAMINA_HEIGHT);
         // dim the bar while exhausted so the sprint lockout reads at a glance

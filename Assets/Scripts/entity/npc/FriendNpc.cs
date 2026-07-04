@@ -315,6 +315,13 @@ public class FriendNpc : MonoBehaviour, IInteractable
 
     void rest(DialogueUI dialogue, GameState state)
     {
+        // the early-return bond banks now — settling in for the evening is what
+        // actually converts leftover daylight into time together
+        if (state != null) {
+            int pending = state.getCounter(GameManager.COUNTER_LAST_RUN_BOND);
+            if (pending > 0) addClamped(state, GameManager.COUNTER_BOND, pending);
+        }
+
         string[] lines;
         switch (DayCycle.CurrentDay) {
             case 1:
