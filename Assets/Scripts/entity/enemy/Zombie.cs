@@ -1,8 +1,10 @@
 using UnityEngine;
 
 // Basic zombie enemy. Stands idle until the player enters its view cone (range +
-// angle + unobstructed line of sight), then chases. No navmesh: it walks straight
-// toward the player and slides along walls via the CharacterController. Keeps
+// angle + unobstructed line of sight), then chases. Also listens on the Noise bus:
+// a sound within its radius sends the zombie shambling to the noise point to
+// investigate (sight/chase always takes priority). No navmesh: it walks straight
+// toward its goal and slides along walls via the CharacterController. Keeps
 // chasing for a short memory window after losing sight.
 [RequireComponent(typeof(CharacterController))]
 public class Zombie : MonoBehaviour
@@ -14,9 +16,24 @@ public class Zombie : MonoBehaviour
     float chaseMemory;
     float attackCooldown;
 
+    // noise investigation
+    bool hasNoise;
+    Vector3 noisePosition;
+    float lingerTimer;
+
     void Awake()
     {
         controller = GetComponent<CharacterController>();
+    }
+
+    void OnEnable()
+    {
+        Noise.onNoise += onNoise;
+    }
+
+    void OnDisable()
+    {
+        Noise.onNoise -= onNoise;   // static event — never leave a destroyed listener behind
     }
 
     void Start()
@@ -45,9 +62,42 @@ public class Zombie : MonoBehaviour
                 chase();
                 tryAttack();
             }
+            else
+            {
+                investigate();
+            }
         }
 
         applyGravity();
+    }
+
+    // A sound reached us if we're inside its carry radius. The newest audible noise
+    // wins; an active chase is never interrupted (checked in Update's priority).
+    void onNoise(Vector3 position, float radius)
+    {
+        if ((position - transform.position).sqrMagnitude > radius * radius) return;
+
+        hasNoise = true;
+        noisePosition = position;
+        lingerTimer = GameManager.ZOMBIE_INVESTIGATE_LINGER;
+    }
+
+    // Shamble to the last heard noise, look around briefly, then go back to idling.
+    void investigate()
+    {
+        if (!hasNoise) return;
+
+        Vector3 flat = noisePosition - transform.position;
+        flat.y = 0f;
+
+        if (flat.magnitude > 1f)
+        {
+            moveToward(noisePosition, GameManager.ZOMBIE_INVESTIGATE_SPEED);
+            return;
+        }
+
+        lingerTimer -= Time.deltaTime;
+        if (lingerTimer <= 0f) hasNoise = false;
     }
 
     // Bite the player whenever it stays within reach, throttled by a cooldown.
@@ -89,7 +139,13 @@ public class Zombie : MonoBehaviour
 
     void chase()
     {
-        Vector3 direction = target.position - transform.position;
+        moveToward(target.position, GameManager.ZOMBIE_MOVE_SPEED);
+    }
+
+    // Straight-line steering shared by chasing and investigating.
+    void moveToward(Vector3 point, float speed)
+    {
+        Vector3 direction = point - transform.position;
         direction.y = 0f;
         if (direction.sqrMagnitude < 0.0001f) return;
 
@@ -99,7 +155,7 @@ public class Zombie : MonoBehaviour
             Quaternion.LookRotation(direction),
             Time.deltaTime * GameManager.ZOMBIE_TURN_SPEED);
 
-        controller.Move(direction * GameManager.ZOMBIE_MOVE_SPEED * Time.deltaTime);
+        controller.Move(direction * speed * Time.deltaTime);
     }
 
     void applyGravity()

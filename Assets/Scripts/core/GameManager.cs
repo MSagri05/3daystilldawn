@@ -24,6 +24,11 @@ public class GameManager : MonoBehaviour
     public const float MC_SPRINT_MULTIPLIER   = 2.2f;
     public const float MC_SPRINT_JUMP_BOOST   = 0.2f;    // forward impulse per sprint-jump
 
+    // --- crouch (hold Left Ctrl): slow, silent, camera lowered ---
+    public const float MC_CROUCH_MULTIPLIER = 0.5f;  // crouch speed relative to walking
+    public const float CROUCH_CAMERA_DROP   = 0.6f;   // metres the eye lowers while crouched
+    public const float CROUCH_LERP_SPEED    = 5f;    // how fast the camera eases down/up
+
     // --- stamina (drains on sprint + jump; hard-lockout exhaustion) ---
     public const float STAMINA_MAX               = 100f;
     public const float STAMINA_SPRINT_DRAIN      = 25f;   // per second sprinting -> ~4s of sprint
@@ -50,6 +55,13 @@ public class GameManager : MonoBehaviour
     public const float ZOMBIE_SIGHT_MEMORY = 3f;    // keeps chasing this long after losing sight
     public const float ZOMBIE_EYE_HEIGHT   = 1.6f;
     public const float ZOMBIE_HEARING_RANGE = 5f;   // notices the player from any direction this close
+    public const float ZOMBIE_INVESTIGATE_SPEED  = 1.5f;   // slower shamble toward a heard noise
+    public const float ZOMBIE_INVESTIGATE_LINGER = 2.5f;   // seconds spent at the noise spot before idling
+
+    // noise emission (Noise bus): sprint is loud, walking is quiet, crouching is silent
+    public const float NOISE_SPRINT_RADIUS    = 30f;    // how far sprint footsteps carry
+    public const float NOISE_WALK_RADIUS      = 8f;     // walking footsteps carry about one aisle
+    public const float NOISE_FOOTSTEP_INTERVAL = 0.4f;  // seconds between footstep noises
     public const float ZOMBIE_ATTACK_DAMAGE   = 12f;
     public const float ZOMBIE_ATTACK_RANGE    = 1.8f;
     public const float ZOMBIE_ATTACK_COOLDOWN = 1f;

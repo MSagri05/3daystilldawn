@@ -18,10 +18,12 @@ public class PlayerController : MonoBehaviour
     float inputStrafe;
     float inputForward;
     bool inputSprint;
+    bool inputCrouch;
     bool inputJump;
 
-    // read-only feel state for CameraEffects (FOV kick / head bob)
+    // read-only feel state for CameraEffects (FOV kick / head bob) and PlayerNoise
     public bool IsSprinting { get; private set; }
+    public bool IsCrouching { get; private set; }
     public bool IsGrounded => controller != null && controller.isGrounded;
     // current horizontal speed in units/second (moveVelocity is blocks-per-tick)
     public float HorizontalSpeed =>
@@ -60,6 +62,21 @@ public class PlayerController : MonoBehaviour
 
         // move smoothly every frame using the current velocity (blocks/tick -> this frame)
         controller.Move(moveVelocity * (Time.deltaTime / GameManager.MC_TICK));
+
+        updateCrouchCamera();
+    }
+
+    // Ease the eye down while crouched and back up on release. Only the holder's
+    // height moves — pitch (holder rotation) and head bob (camera child) are untouched.
+    void updateCrouchCamera()
+    {
+        if (cameraHolder == null) return;
+
+        float targetY = GameManager.PLAYER_EYE_HEIGHT
+                        - (IsCrouching ? GameManager.CROUCH_CAMERA_DROP : 0f);
+        Vector3 p = cameraHolder.localPosition;
+        p.y = Mathf.Lerp(p.y, targetY, GameManager.CROUCH_LERP_SPEED * Time.deltaTime);
+        cameraHolder.localPosition = p;
     }
 
     void handleLook()
@@ -80,6 +97,7 @@ public class PlayerController : MonoBehaviour
         inputStrafe  = enabled ? Input.GetAxisRaw("Horizontal") : 0f;
         inputForward = enabled ? Input.GetAxisRaw("Vertical")   : 0f;
         inputSprint  = enabled && Input.GetKey(KeyCode.LeftShift);
+        inputCrouch  = enabled && Input.GetKey(KeyCode.LeftControl);
         if (enabled && Input.GetButton("Jump")) inputJump = true;
     }
 
@@ -89,9 +107,12 @@ public class PlayerController : MonoBehaviour
         if (grounded && verticalMotion < 0f)
             verticalMotion = -GameManager.MC_GRAVITY;     // small stick so isGrounded stays stable
 
-        bool sprinting = inputSprint && inputForward > 0f
+        // crouching excludes sprinting; Minecraft only sprints going forward
+        bool crouching = inputCrouch;
+        bool sprinting = !crouching && inputSprint && inputForward > 0f
                          && (stamina == null || stamina.CanSprint);
         IsSprinting = sprinting;
+        IsCrouching = crouching;
         stamina?.setSprinting(sprinting);
 
         if (grounded && inputJump)
@@ -116,7 +137,9 @@ public class PlayerController : MonoBehaviour
         wish.y = 0f;
         float wishLen = wish.magnitude;
         if (wishLen > 0f) wish /= Mathf.Max(1f, wishLen);
-        horizontalMotion += wish * accelForTick(grounded, sprinting);
+        float accel = accelForTick(grounded, sprinting);
+        if (crouching) accel *= GameManager.MC_CROUCH_MULTIPLIER;
+        horizontalMotion += wish * accel;
 
         // this pre-friction velocity is what MC moves by; hold it until the next tick
         moveVelocity = new Vector3(horizontalMotion.x, verticalMotion, horizontalMotion.z);
