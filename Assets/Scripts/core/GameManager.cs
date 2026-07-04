@@ -19,9 +19,9 @@ public class GameManager : MonoBehaviour
     public const float MC_GRAVITY             = 0.08f;   // blocks per tick^2
     public const float MC_Y_DRAG              = 0.98f;
     public const float MC_JUMP_VELOCITY       = 0.42f;   // -> ~1.2522 block apex
-    public const float MC_WALK_ACCEL          = 0.1f;
+    public const float MC_WALK_ACCEL          = 0.13f;
     public const float MC_AIR_ACCEL           = 0.02f;
-    public const float MC_SPRINT_MULTIPLIER   = 1.6f;
+    public const float MC_SPRINT_MULTIPLIER   = 2.2f;
     public const float MC_SPRINT_JUMP_BOOST   = 0.2f;    // forward impulse per sprint-jump
 
     // --- stamina (drains on sprint + jump; hard-lockout exhaustion) ---
@@ -35,7 +35,7 @@ public class GameManager : MonoBehaviour
     // --- camera feel (CameraEffects) ---
     public const float SPRINT_FOV_KICK   = 6f;    // degrees added to base FOV while sprinting
     public const float FOV_LERP_SPEED    = 8f;     // how fast FOV eases toward its target
-    public const float HEADBOB_FREQUENCY = 3.1f;   // bob cycles scale with speed * this
+    public const float HEADBOB_FREQUENCY = 2.5f;   // bob cycles scale with speed * this
     public const float HEADBOB_AMPLITUDE = 0.06f; // vertical bob height at walking speed (metres)
     public const float HEADBOB_SPRINT_MULT = 1.5f; // amplitude/pace boost at full sprint speed
     public const float HEADBOB_MIN_SPEED = 0.5f;   // below this speed (units/s) the bob rests
