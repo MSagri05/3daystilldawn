@@ -12,6 +12,8 @@ public class Health : MonoBehaviour
 
     // (current, max)
     public UnityEvent<float, float> onHealthChanged = new UnityEvent<float, float>();
+    // fired only on an actual hit (amount), not on capacity changes — drives the hit flash
+    public UnityEvent<float> onDamaged = new UnityEvent<float>();
     public UnityEvent onDeath = new UnityEvent();
 
     void Awake()
@@ -32,6 +34,7 @@ public class Health : MonoBehaviour
         if (amount <= 0f || IsDead) return;
 
         applyDelta(-amount);
+        onDamaged.Invoke(amount);
         if (IsDead) onDeath.Invoke();
     }
 

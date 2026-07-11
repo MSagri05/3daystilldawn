@@ -19,12 +19,18 @@ public class PlayerHUD : MonoBehaviour
     static readonly Color STAMINA_FILL  = new Color(0.85f, 0.75f, 0.25f, 1f);   // amber
     static readonly Color STAMINA_SPENT = new Color(0.55f, 0.30f, 0.20f, 1f);   // dim while exhausted
     static readonly Color OVERLAY       = new Color(0.05f, 0f, 0f, 0.85f);
+    static readonly Color HIT_FLASH     = new Color(0.6f, 0f, 0f, 1f);
+    const float HIT_FLASH_MAX  = 0.4f;   // peak opacity the instant a hit lands
+    const float HIT_FLASH_FADE = 1.2f;   // opacity units drained per second
 
     RectTransform healthFill;
     TextMeshProUGUI healthLabel;
     TextMeshProUGUI objectiveLabel;
     TextMeshProUGUI dayLabel;
     GameObject deathOverlay;
+
+    UnityEngine.UI.Image hitFlash;
+    float hitAlpha;
 
     RectTransform staminaFill;
     UnityEngine.UI.Image staminaFillImage;
@@ -46,6 +52,7 @@ public class PlayerHUD : MonoBehaviour
         if (playerHealth != null)
         {
             playerHealth.onHealthChanged.AddListener(updateHealth);
+            playerHealth.onDamaged.AddListener(onPlayerDamaged);
             playerHealth.onDeath.AddListener(showDeath);
             updateHealth(playerHealth.Current, playerHealth.Max);
         }
@@ -77,6 +84,22 @@ public class PlayerHUD : MonoBehaviour
     void onFlagChanged(string key, bool value)
     {
         if (key.StartsWith(GameManager.MORNING_TALKED_PREFIX)) refreshObjective();
+    }
+
+    // full-screen red kick on every hit, then it drains back to clear
+    void onPlayerDamaged(float amount)
+    {
+        hitAlpha = HIT_FLASH_MAX;
+    }
+
+    void Update()
+    {
+        if (hitAlpha > 0f && hitFlash != null)
+        {
+            hitAlpha = Mathf.Max(0f, hitAlpha - HIT_FLASH_FADE * Time.deltaTime);
+            var c = HIT_FLASH; c.a = hitAlpha;
+            hitFlash.color = c;
+        }
     }
 
     public void setObjective(string text)
@@ -211,7 +234,16 @@ public class PlayerHUD : MonoBehaviour
         UiFactory.outline(objectiveLabel);
 
         buildCrosshair(root);
+        buildHitFlash(root);
         buildDeathOverlay(root);
+    }
+
+    void buildHitFlash(Transform root)
+    {
+        var flash = image(root, "HitFlash", new Color(HIT_FLASH.r, HIT_FLASH.g, HIT_FLASH.b, 0f));
+        stretch(flash.rectTransform);
+        flash.raycastTarget = false;   // never swallow clicks on the death button
+        hitFlash = flash;
     }
 
     void buildCrosshair(Transform root)

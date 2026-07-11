@@ -41,23 +41,25 @@ public class CameraEffects : MonoBehaviour
         float speed = player.HorizontalSpeed;
         bool moving = player.IsGrounded && speed > GameManager.HEADBOB_MIN_SPEED;
 
-        Vector3 offset = Vector3.zero;
         if (moving)
         {
             float sprintLerp = player.IsSprinting ? GameManager.HEADBOB_SPRINT_MULT : 1f;
             float amplitude  = GameManager.HEADBOB_AMPLITUDE * sprintLerp;
 
             bobPhase += speed * GameManager.HEADBOB_FREQUENCY * Time.deltaTime;
+            Vector3 offset;
             offset.y = Mathf.Sin(bobPhase) * amplitude;
             offset.x = Mathf.Cos(bobPhase * 0.5f) * amplitude * 0.5f;   // subtle side sway
+            offset.z = 0f;
+            // drive the bob directly so its full amplitude reads instead of being smoothed away
+            transform.localPosition = basePosition + offset;
         }
         else
         {
             bobPhase = 0f;   // next step starts from neutral
+            // ease back to a level view when standing still
+            transform.localPosition = Vector3.Lerp(transform.localPosition, basePosition,
+                                                   GameManager.FOV_LERP_SPEED * Time.deltaTime);
         }
-
-        Vector3 goal = basePosition + offset;
-        transform.localPosition = Vector3.Lerp(transform.localPosition, goal,
-                                               GameManager.FOV_LERP_SPEED * Time.deltaTime);
     }
 }
